@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 
 const NAV = [
   ["📊","Dashboard","/dashboard"],
@@ -17,6 +18,7 @@ const ACCOUNT = [
 
 export default function Sidebar({ founder }: { founder?: boolean }) {
   const path = usePathname();
+  const [open, setOpen] = useState(false);
   const sb: React.CSSProperties = { display:"flex", alignItems:"center", gap:11, padding:"10px 16px", fontSize:".74rem", borderLeft:"2px solid transparent", cursor:"pointer", textDecoration:"none" };
 
   const item = (ic:string, lb:string, href:string) => {
@@ -29,7 +31,13 @@ export default function Sidebar({ founder }: { founder?: boolean }) {
   };
 
   return (
-    <aside style={{ background:"rgba(6,13,46,0.95)", backdropFilter:"blur(20px)", borderRight:"1px solid rgba(10,26,92,0.6)", display:"flex", flexDirection:"column", paddingTop:56, overflow:"hidden" }}>
+    <>
+    {/* Bouton ouvrir (mobile) */}
+    <button className="burger" onClick={()=>setOpen(true)} style={{ position:"fixed", top:12, left:12, zIndex:300, background:"rgba(192,57,43,0.15)", border:"1px solid rgba(192,57,43,0.3)", color:"var(--red)", borderRadius:8, width:38, height:38, fontSize:"1.2rem", cursor:"pointer", alignItems:"center", justifyContent:"center" }}>☰</button>
+    {/* Fond cliquable */}
+    <div className={`dash-backdrop ${open?"open":""}`} onClick={()=>setOpen(false)} />
+    <aside className={`dash-aside ${open?"open":""}`} style={{ background:"rgba(6,13,46,0.95)", backdropFilter:"blur(20px)", borderRight:"1px solid rgba(10,26,92,0.6)", display:"flex", flexDirection:"column", paddingTop:56, overflow:"hidden" }}>
+      <button className="burger" onClick={()=>setOpen(false)} style={{ position:"absolute", top:10, right:10, background:"rgba(192,57,43,0.15)", border:"1px solid rgba(192,57,43,0.3)", color:"var(--red)", borderRadius:7, width:30, height:30, fontSize:"1rem", cursor:"pointer", alignItems:"center", justifyContent:"center" }}>✕</button>
       <div style={{ padding:"16px 14px", borderBottom:"1px solid rgba(10,26,92,0.6)", textAlign:"center" }}>
         <Link href="/dashboard" style={{ textDecoration:"none", display:"block" }}>
           <span style={{ fontFamily:"var(--font-orbitron,monospace)", fontSize:"1.05rem", fontWeight:900, color:"white" }}>AI-<span style={{ color:"var(--red)" }}>BED</span></span>
@@ -43,5 +51,6 @@ export default function Sidebar({ founder }: { founder?: boolean }) {
         <Link href="/" style={{ ...sb, marginTop:4, color:"var(--muted)" }}><span>🚪</span><span>Déconnexion</span></Link>
       </div>
     </aside>
+    </>
   );
 }

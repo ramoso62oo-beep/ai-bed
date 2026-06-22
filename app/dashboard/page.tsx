@@ -29,6 +29,7 @@ export default function DashboardPage() {
   const [mode, setMode] = useState("ACTIF");
   const [balance, setBalance] = useState(9808.43);
   const [posList, setPosList] = useState(POSITIONS);
+  const [navOpen, setNavOpen] = useState(false);
   const [avatar, setAvatar] = useState(0);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [user, setUser] = useState<{email?:string;role?:string;plan?:string}>({});
@@ -63,10 +64,15 @@ export default function DashboardPage() {
   );
 
   return (
-    <div style={{ display:"grid", gridTemplateColumns:"210px 1fr", height:"100vh", background:"var(--navy)", overflow:"hidden" }}>
+    <div className="dash-root" style={{ display:"grid", gridTemplateColumns:"210px 1fr", height:"100vh", background:"var(--navy)", overflow:"hidden" }}>
+
+      {/* Fond cliquable mobile */}
+      <div className={`dash-backdrop ${navOpen?"open":""}`} onClick={()=>setNavOpen(false)} />
 
       {/* SIDEBAR */}
-      <aside style={{ background:"rgba(6,13,46,0.95)", backdropFilter:"blur(20px)", borderRight:"1px solid rgba(10,26,92,0.6)", display:"flex", flexDirection:"column", paddingTop:56, overflow:"hidden" }}>
+      <aside className={`dash-aside ${navOpen?"open":""}`} style={{ background:"rgba(6,13,46,0.95)", backdropFilter:"blur(20px)", borderRight:"1px solid rgba(10,26,92,0.6)", display:"flex", flexDirection:"column", paddingTop:56, overflow:"hidden" }}>
+        {/* Bouton fermer (mobile) */}
+        <button className="burger" onClick={()=>setNavOpen(false)} style={{ position:"absolute", top:10, right:10, background:"rgba(192,57,43,0.15)", border:"1px solid rgba(192,57,43,0.3)", color:"var(--red)", borderRadius:7, width:30, height:30, fontSize:"1rem", cursor:"pointer", alignItems:"center", justifyContent:"center" }}>✕</button>
         {/* Bot */}
         <div style={{ padding:"16px 14px", borderBottom:"1px solid rgba(10,26,92,0.6)", textAlign:"center" }}>
           <div className="float-3d" onClick={() => setShowAvatarPicker(!showAvatarPicker)} style={{ width:56, height:56, borderRadius:"50%", background:"rgba(10,26,92,0.4)", border:"2px solid var(--red)", margin:"0 auto 7px", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"1.6rem", cursor:"pointer", boxShadow:"0 0 16px var(--red-glow)" }}>
@@ -113,6 +119,7 @@ export default function DashboardPage() {
 
         {/* Topbar */}
         <div style={{ display:"flex", alignItems:"center", gap:10, padding:"0 18px", height:56, borderBottom:"1px solid rgba(10,26,92,0.6)", background:"rgba(4,7,26,0.8)", flexShrink:0, zIndex:10 }}>
+          <button className="burger" onClick={()=>setNavOpen(true)} style={{ background:"rgba(192,57,43,0.12)", border:"1px solid rgba(192,57,43,0.3)", color:"var(--red)", borderRadius:7, width:32, height:32, fontSize:"1.1rem", cursor:"pointer", alignItems:"center", justifyContent:"center", flexShrink:0 }}>☰</button>
           <span style={{ fontFamily:"var(--font-orbitron,monospace)", fontSize:".75rem", fontWeight:700, color:"white", letterSpacing:".12em" }}>Dashboard</span>
           <div style={{ display:"flex", gap:6, marginLeft:12 }}>
             {(["PATIENT","ACTIF","AGRESSIF"] as const).map(m=>(
