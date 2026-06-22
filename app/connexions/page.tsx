@@ -4,6 +4,8 @@ import Sidebar from "../components/Sidebar";
 import Tooltip from "../components/Tooltip";
 import ConnectExchange from "../components/ConnectExchange";
 import ConnectWallet from "../components/ConnectWallet";
+import { useAccess } from "../components/Access";
+import Link from "next/link";
 
 const MODES = [
   { id:"manuel", icon:"✋", title:"Manuel", desc:"Vous passez vos ordres vous-même. Le bot vous donne les infos, vous décidez et exécutez.", color:"#4a90d9" },
@@ -21,6 +23,7 @@ const EXCHANGES = [
 ];
 
 export default function ConnexionsPage() {
+  const access = useAccess();
   const [user, setUser] = useState<{email?:string;role?:string}>({});
   const [mode, setMode] = useState("signaux");
   const [way, setWay] = useState<"cex"|"wallet">("cex");
@@ -59,6 +62,13 @@ export default function ConnexionsPage() {
             </div>
           ))}
         </div>
+
+        {(mode==="auto"||mode==="signaux") && access.ready && !access.paid && (
+          <div style={{ marginTop:12, padding:"11px 16px", borderRadius:10, background:"rgba(251,191,36,0.1)", border:"1px solid rgba(251,191,36,0.3)", fontSize:".7rem", color:"#fbbf24", display:"flex", alignItems:"center", gap:12, flexWrap:"wrap" }}>
+            ⭐ <span>Le mode {mode==="auto"?"Automatique":"Signaux"} (bots) nécessite un abonnement. En gratuit, vous gardez le mode Manuel et le trading de base.</span>
+            <Link href="/register?plan=starter" style={{ padding:"5px 12px", borderRadius:7, background:"#fbbf24", color:"#04071a", textDecoration:"none", fontWeight:700, fontSize:".66rem" }}>S&apos;abonner</Link>
+          </div>
+        )}
 
         {/* 2. VOIE */}
         <div style={sectionTitle}>2 · Où trader ?</div>

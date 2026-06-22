@@ -8,6 +8,7 @@ import Tooltip from "../components/Tooltip";
 import WhaleFeed from "../components/WhaleFeed";
 import NewsFeed from "../components/NewsFeed";
 import Tilt3D from "../components/Tilt3D";
+import { useAccess, VisitorBanner, DemoResetBanner } from "../components/Access";
 
 const POSITIONS = [
   { sym:"BTCUSDT",    side:"LONG",  mode:"PATIENT",   entry:64125, current:64310, pnl:+0.29, sl:63612, tp:65279 },
@@ -31,6 +32,7 @@ export default function DashboardPage() {
   const [posList, setPosList] = useState(POSITIONS);
   const [navOpen, setNavOpen] = useState(false);
   const [env, setEnv] = useState<"demo"|"real">("demo");
+  const access = useAccess();
   const [avatar, setAvatar] = useState(0);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [user, setUser] = useState<{email?:string;role?:string;plan?:string}>({});
@@ -131,6 +133,8 @@ export default function DashboardPage() {
 
       {/* MAIN */}
       <div style={{ display:"flex", flexDirection:"column", height:"100vh", overflowY:"auto" }}>
+        <VisitorBanner access={access} />
+        <DemoResetBanner />
 
         {/* Topbar */}
         <div style={{ display:"flex", alignItems:"center", gap:10, padding:"0 18px", height:56, borderBottom:"1px solid rgba(10,26,92,0.6)", background:"rgba(4,7,26,0.8)", flexShrink:0, zIndex:10 }}>

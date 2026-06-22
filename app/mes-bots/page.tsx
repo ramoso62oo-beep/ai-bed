@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
 import Tooltip from "../components/Tooltip";
 import ConnectExchange from "../components/ConnectExchange";
+import { useAccess, PlanGate } from "../components/Access";
 
 type Bot = { id:number; avatar:string; name:string; mode:string; pnl:number; on:boolean };
 const AVATARS = ["🐂","🦅","🐉","🦁","🐺","🦊","🤖","👾","🎯","💀","🌙","⚡","🔥","💎","🚀","🌊","🎭","🏆","👑","⚔️"];
@@ -14,6 +15,7 @@ const DEFAULT: Bot[] = [
 ];
 
 export default function MesBotsPage() {
+  const access = useAccess();
   const [user, setUser] = useState<{email?:string;role?:string;plan?:string}>({});
   const [bots, setBots] = useState<Bot[]>([]);
   const [modal, setModal] = useState(false);
@@ -56,6 +58,7 @@ export default function MesBotsPage() {
         <div style={{ marginBottom:24, maxWidth:520 }}>
           <ConnectExchange email={user.email} exchange={(typeof window!=="undefined" && localStorage.getItem("aibed_exchange")) || "binance"} />
         </div>
+        <PlanGate access={access} need="subscription" label="Les bots automatisés sont réservés aux abonnés">
         <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(240px,1fr))", gap:16 }}>
           {bots.map(b=>(
             <div key={b.id} className="lift-3d" style={card}>
@@ -87,6 +90,7 @@ export default function MesBotsPage() {
             </div>
           </Tooltip>
         </div>
+        </PlanGate>
       </div>
 
       {modal && (
