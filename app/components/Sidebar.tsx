@@ -15,6 +15,7 @@ const NAV = [
 const ACCOUNT = [
   ["💼","Portefeuille","/portefeuille"],
   ["📰","Actualités","/actualites"],
+  ["💬","Contact","/contact"],
   ["⚙️","Paramètres","/settings"],
 ];
 

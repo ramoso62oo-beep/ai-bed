@@ -30,6 +30,7 @@ export default function DashboardPage() {
   const [balance, setBalance] = useState(9808.43);
   const [posList, setPosList] = useState(POSITIONS);
   const [navOpen, setNavOpen] = useState(false);
+  const [env, setEnv] = useState<"demo"|"real">("demo");
   const [avatar, setAvatar] = useState(0);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [user, setUser] = useState<{email?:string;role?:string;plan?:string}>({});
@@ -52,6 +53,12 @@ export default function DashboardPage() {
     }, 2000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => { setEnv((localStorage.getItem("aibed_env") as "demo"|"real") || "demo"); }, []);
+  function toggleEnv() {
+    const next = env === "demo" ? "real" : "demo";
+    setEnv(next); localStorage.setItem("aibed_env", next);
+  }
 
   const isFounder = user.role === "founder";
   const sb: React.CSSProperties = { display:"flex", alignItems:"center", gap:10, padding:"9px 14px", fontSize:".7rem", color:"var(--muted)", cursor:"pointer", borderLeft:"2px solid transparent", textDecoration:"none", transition:"all .2s" };
@@ -96,6 +103,14 @@ export default function DashboardPage() {
               <span style={{ fontSize:".58rem", color:botOn?"var(--green)":"var(--red)", fontWeight:700 }}>{botOn?"Actif":"Pause"}</span>
             </div>
           </Tooltip>
+          {/* Bascule Démo / Réel */}
+          <Tooltip text={env==="demo" ? "Mode DÉMO : argent fictif, idéal pour tester les bots sans risque. Cliquez pour passer en RÉEL." : "Mode RÉEL : trades sur votre compte/wallet connecté avec de l'argent réel. Cliquez pour revenir en DÉMO."}>
+            <div onClick={toggleEnv} style={{ display:"inline-flex", alignItems:"center", gap:6, marginTop:9, padding:"4px 10px", borderRadius:20, cursor:"pointer", border:`1px solid ${env==="demo"?"rgba(251,191,36,0.5)":"rgba(39,174,96,0.5)"}`, background:env==="demo"?"rgba(251,191,36,0.1)":"rgba(39,174,96,0.12)" }}>
+              <span style={{ width:7, height:7, borderRadius:"50%", background:env==="demo"?"#fbbf24":"var(--green)" }}/>
+              <span style={{ fontSize:".56rem", fontWeight:700, color:env==="demo"?"#fbbf24":"var(--green)", letterSpacing:".06em" }}>{env==="demo"?"DÉMO (fictif)":"RÉEL"}</span>
+              <span style={{ fontSize:".5rem", color:"var(--muted)" }}>↔</span>
+            </div>
+          </Tooltip>
           {isFounder && <div style={{ display:"inline-block", marginTop:8, fontSize:".52rem", background:"rgba(192,57,43,0.1)", border:"1px solid rgba(192,57,43,0.3)", borderRadius:20, padding:"3px 10px", color:"var(--red)", fontWeight:700, letterSpacing:".08em" }}>👑 FONDATEUR</div>}
         </div>
 
@@ -107,7 +122,7 @@ export default function DashboardPage() {
             </Link>
           ))}
           <div style={{ padding:"6px 14px 4px", fontSize:".5rem", color:"#1a3a6e", textTransform:"uppercase", letterSpacing:".18em", marginTop:8 }}>Compte</div>
-          {[["💼","Portefeuille","/portefeuille"],["📰","Actualités","/actualites"],["⚙️","Paramètres","/settings"]].map(([ic,lb,href])=>(
+          {[["💼","Portefeuille","/portefeuille"],["📰","Actualités","/actualites"],["💬","Contact","/contact"],["⚙️","Paramètres","/settings"]].map(([ic,lb,href])=>(
             <Link key={String(lb)} href={String(href)} style={{ ...sb, textDecoration:"none" }}><span>{ic}</span><span>{lb}</span></Link>
           ))}
           <Link href="/" style={{ ...sb, marginTop:4, textDecoration:"none" }}><span>🚪</span><span>Déconnexion</span></Link>
