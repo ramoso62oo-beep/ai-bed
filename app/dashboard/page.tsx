@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import TokenTable from "../components/TokenTable";
+import CandleChart from "../components/CandleChart";
 
 const POSITIONS = [
   { sym:"BTCUSDT",    side:"LONG",  mode:"PATIENT",   entry:64125, current:64310, pnl:+0.29, sl:63612, tp:65279 },
@@ -28,7 +29,6 @@ const AVATARS = ["🐂","🦅","🐉","🦁","🐺","🦊","🤖","👾","🎯",
 const MODE_COLOR: Record<string, string> = { PATIENT:"#4a90d9", ACTIF:"#27ae60", AGRESSIF:"#c0392b" };
 
 export default function DashboardPage() {
-  const chartRef = useRef<HTMLCanvasElement>(null);
   const [botOn, setBotOn] = useState(true);
   const [mode, setMode] = useState("ACTIF");
   const [balance, setBalance] = useState(9808.43);
@@ -47,56 +47,13 @@ export default function DashboardPage() {
     }
   }, [session]);
 
-  // Price chart
+  // Mise à jour du solde en temps réel
   useEffect(() => {
-    const canvas = chartRef.current; if (!canvas) return;
-    const ctx = canvas.getContext("2d")!;
-    let prices: number[] = [];
-    const base = 64194;
-    for (let i=0;i<120;i++) prices.push(base + (Math.random()-.48)*800);
-    let raf: number;
-    const draw = () => {
-      const W = canvas.width = canvas.offsetWidth;
-      const H = canvas.height = canvas.offsetHeight;
-      ctx.clearRect(0,0,W,H);
-      const mn=Math.min(...prices)-50, mx=Math.max(...prices)+50, range=mx-mn;
-      const pad={l:42,r:8,t:8,b:18};
-      const W2=W-pad.l-pad.r, H2=H-pad.t-pad.b;
-      // Grid
-      for(let i=0;i<=4;i++){
-        const y=pad.t+(H2/4)*i;
-        ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);
-        ctx.strokeStyle="rgba(10,26,92,0.4)";ctx.lineWidth=1;ctx.stroke();
-        ctx.fillStyle="rgba(74,111,165,0.6)";ctx.font="9px Inter";
-        ctx.fillText((mx-(range/4)*i).toFixed(0),2,y+3);
-      }
-      // Line
-      ctx.beginPath();
-      prices.forEach((p,i)=>{
-        const x=pad.l+(i/(prices.length-1))*W2;
-        const y=pad.t+(1-(p-mn)/range)*H2;
-        i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
-      });
-      ctx.strokeStyle="#c0392b";ctx.lineWidth=1.5;ctx.shadowBlur=6;ctx.shadowColor="#c0392b";ctx.stroke();ctx.shadowBlur=0;
-      // Fill
-      const lx=pad.l+W2, ly=pad.t+(1-(prices[prices.length-1]-mn)/range)*H2;
-      ctx.lineTo(lx,H-pad.b);ctx.lineTo(pad.l,H-pad.b);ctx.closePath();
-      const g=ctx.createLinearGradient(0,pad.t,0,H-pad.b);
-      g.addColorStop(0,"rgba(192,57,43,0.2)");g.addColorStop(1,"rgba(192,57,43,0)");
-      ctx.fillStyle=g;ctx.fill();
-      // Dot
-      ctx.beginPath();ctx.arc(lx,ly,3,0,Math.PI*2);
-      ctx.fillStyle="#c0392b";ctx.shadowBlur=10;ctx.shadowColor="#c0392b";ctx.fill();ctx.shadowBlur=0;
-    };
-    const loop = () => { draw(); raf=requestAnimationFrame(loop); };
-    loop();
     const interval = setInterval(() => {
-      prices.push(prices[prices.length-1]+(Math.random()-.48)*120);
-      if(prices.length>120)prices.shift();
       setBalance(b => parseFloat((b+(Math.random()-.49)*2).toFixed(2)));
-    },2000);
-    return () => { cancelAnimationFrame(raf); clearInterval(interval); };
-  },[]);
+    }, 2000);
+    return () => clearInterval(interval);
+  }, []);
 
   const isFounder = user.role === "founder";
   const sb: React.CSSProperties = { display:"flex", alignItems:"center", gap:10, padding:"9px 14px", fontSize:".7rem", color:"var(--muted)", cursor:"pointer", borderLeft:"2px solid transparent", textDecoration:"none", transition:"all .2s" };
@@ -186,15 +143,7 @@ export default function DashboardPage() {
 
           <div style={{ display:"flex", flexDirection:"column", gap:8, minHeight:0, overflow:"hidden" }}>
             {/* Chart */}
-            <div style={{ background:"rgba(6,13,46,0.55)", border:"1px solid rgba(10,26,92,0.6)", borderRadius:10, overflow:"hidden", flexShrink:0 }}>
-              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"9px 13px", borderBottom:"1px solid rgba(10,26,92,0.6)" }}>
-                <span style={{ fontSize:".66rem", fontWeight:700, color:"white", textTransform:"uppercase", letterSpacing:".08em" }}>📈 BTC/USDT — Temps réel</span>
-                <select style={{ background:"rgba(4,7,26,0.8)", border:"1px solid rgba(10,26,92,0.6)", color:"var(--muted)", fontSize:".6rem", padding:"3px 7px", borderRadius:4, outline:"none" }}>
-                  <option>1m</option><option>5m</option><option>15m</option><option>1h</option><option>1j</option>
-                </select>
-              </div>
-              <canvas ref={chartRef} style={{ width:"100%", height:140, display:"block" }} />
-            </div>
+            <CandleChart pair="BTC/USDT" />
 
             {/* Positions */}
             <div style={{ background:"rgba(6,13,46,0.55)", border:"1px solid rgba(10,26,92,0.6)", borderRadius:10, flex:1, overflow:"hidden", display:"flex", flexDirection:"column" }}>
