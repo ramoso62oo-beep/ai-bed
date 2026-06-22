@@ -116,6 +116,13 @@ button:active { transform: translateY(1px) scale(0.985); }
   .dash-aside.open { transform: translateX(0); }
   .burger { display: flex !important; }
   .dash-backdrop.open { display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 350; }
+
+  /* Dashboard : empiler les fenêtres en pleine largeur */
+  .dash-grid { grid-template-columns: 1fr !important; height: auto !important; }
+  .dash-col { overflow: visible !important; }
+  .dash-kpis { grid-template-columns: 1fr 1fr !important; }
+  .panel-pos { min-height: 300px; }
+  .panel-news { min-height: 320px; }
 }
 
 /* Grille avec perspective de profondeur */

@@ -137,7 +137,7 @@ export default function DashboardPage() {
         </div>
 
         {/* KPIs */}
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(5,1fr)", gap:8, padding:"10px 16px", flexShrink:0 }}>
+        <div className="dash-kpis" style={{ display:"grid", gridTemplateColumns:"repeat(5,1fr)", gap:8, padding:"10px 16px", flexShrink:0 }}>
           {kpi("Portefeuille", `${balance.toLocaleString("fr-FR",{maximumFractionDigits:2})} $`, `+${(balance-9808).toFixed(2)}$ vs départ`, "white")}
           {kpi("PnL Aujourd'hui", "+4.23%", "+412 USDT", "var(--green)")}
           {kpi("Positions actives", "4 / 10", "3 en profit", "var(--blue)")}
@@ -146,14 +146,14 @@ export default function DashboardPage() {
         </div>
 
         {/* Grid */}
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 300px", gap:8, padding:"0 16px 10px", height:440, flexShrink:0, minHeight:0 }}>
+        <div className="dash-grid" style={{ display:"grid", gridTemplateColumns:"1fr 300px", gap:8, padding:"0 16px 10px", height:440, flexShrink:0, minHeight:0 }}>
 
-          <div style={{ display:"flex", flexDirection:"column", gap:8, minHeight:0, overflow:"hidden" }}>
+          <div className="dash-col" style={{ display:"flex", flexDirection:"column", gap:8, minHeight:0, overflow:"hidden" }}>
             {/* Chart */}
             <CandleChart pair="BTC/USDT" />
 
             {/* Positions */}
-            <div style={{ background:"rgba(6,13,46,0.55)", border:"1px solid rgba(10,26,92,0.6)", borderRadius:10, flex:1, overflow:"hidden", display:"flex", flexDirection:"column" }}>
+            <div className="panel-pos" style={{ background:"rgba(6,13,46,0.55)", border:"1px solid rgba(10,26,92,0.6)", borderRadius:10, flex:1, overflow:"hidden", display:"flex", flexDirection:"column" }}>
               <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"9px 13px", borderBottom:"1px solid rgba(10,26,92,0.6)", flexShrink:0 }}>
                 <span style={{ fontSize:".66rem", fontWeight:700, color:"white", textTransform:"uppercase", letterSpacing:".08em" }}>📋 Positions ouvertes</span>
                 <Tooltip text="Réinitialise la liste des positions ouvertes par le bot.">
@@ -191,7 +191,7 @@ export default function DashboardPage() {
           </div>
 
           {/* RIGHT */}
-          <div style={{ display:"flex", flexDirection:"column", gap:8, minHeight:0, overflow:"hidden" }}>
+          <div className="dash-col" style={{ display:"flex", flexDirection:"column", gap:8, minHeight:0, overflow:"hidden" }}>
             {/* Whale */}
             <div className="panel-3d" style={{ background:"rgba(6,13,46,0.55)", border:"1px solid rgba(10,26,92,0.6)", borderRadius:10, overflow:"hidden" }}>
               <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"9px 12px", borderBottom:"1px solid rgba(10,26,92,0.6)" }}>
@@ -202,7 +202,7 @@ export default function DashboardPage() {
             </div>
 
             {/* News */}
-            <div className="panel-3d" style={{ background:"rgba(6,13,46,0.55)", border:"1px solid rgba(10,26,92,0.6)", borderRadius:10, overflow:"hidden", flex:1, display:"flex", flexDirection:"column" }}>
+            <div className="panel-3d panel-news" style={{ background:"rgba(6,13,46,0.55)", border:"1px solid rgba(10,26,92,0.6)", borderRadius:10, overflow:"hidden", flex:1, display:"flex", flexDirection:"column" }}>
               <div style={{ padding:"9px 12px", borderBottom:"1px solid rgba(10,26,92,0.6)", flexShrink:0 }}>
                 <span style={{ fontSize:".64rem", fontWeight:700, color:"white", textTransform:"uppercase", letterSpacing:".08em" }}>📰 Actualités IA</span>
               </div>
