@@ -85,15 +85,15 @@ export default function Home() {
         position:"fixed", top:0, left:0, right:0, zIndex:50,
         background:"rgba(4,7,26,0.9)", backdropFilter:"blur(20px)",
         borderBottom: scrolled ? "1px solid rgba(192,57,43,0.3)" : "1px solid rgba(10,26,92,0.6)",
-        display:"flex", alignItems:"center", padding:"0 32px", height:60, transition:"border-color .3s",
-      }}>
-        <Link href="/" style={{ textDecoration:"none" }}>
-          <div style={{ fontFamily:"Orbitron,monospace", fontSize:"1.2rem", fontWeight:900, color:"white", letterSpacing:".12em" }}>
+        display:"flex", alignItems:"center", height:60, transition:"border-color .3s",
+      }} className="nav-bar">
+        <Link href="/" style={{ textDecoration:"none", flexShrink:0 }}>
+          <div style={{ fontFamily:"Orbitron,monospace", fontSize:"1.2rem", fontWeight:900, color:"white", letterSpacing:".12em", lineHeight:1.1, whiteSpace:"nowrap" }}>
             AI-<span style={{ color:"var(--red)" }}>BED</span>
           </div>
-          <div style={{ fontSize:".48rem", color:"var(--muted)", letterSpacing:".2em", textTransform:"uppercase" }}>Build Edge Discipline</div>
+          <div style={{ fontSize:".46rem", color:"var(--muted)", letterSpacing:".18em", textTransform:"uppercase", whiteSpace:"nowrap" }}>Build Edge Discipline</div>
         </Link>
-        <div style={{ display:"flex", gap:24, marginLeft:36, fontSize:".75rem" }}>
+        <div className="nav-links" style={{ display:"flex", gap:24, marginLeft:36, fontSize:".75rem" }}>
           {[["#features","Fonctionnalités"],["#pricing","Tarifs"],["#avatars","Bots"],].map(([h,l])=>(
             <a key={h} href={h} style={{ textDecoration:"none", color:"var(--muted2)", transition:"color .2s" }}
               onMouseEnter={e=>(e.currentTarget.style.color="white")}

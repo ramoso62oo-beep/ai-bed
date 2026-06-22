@@ -96,6 +96,13 @@ button:active { transform: translateY(1px) scale(0.985); }
 /* Avatar flottant */
 .float-3d { animation: float3d 4s ease-in-out infinite; }
 
+/* Navbar responsive */
+.nav-bar { padding: 0 32px; }
+@media (max-width: 680px) {
+  .nav-bar { padding: 0 16px; }
+  .nav-links { display: none !important; }
+}
+
 /* Grille avec perspective de profondeur */
 .cyber-grid { transform: perspective(600px) rotateX(34deg) scale(1.6); transform-origin: center 30%; opacity: 0.5; }
 
