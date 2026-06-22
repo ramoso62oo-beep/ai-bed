@@ -79,7 +79,7 @@ export default function TokenTable() {
       {view.map((t)=>{
         const fc = flash.current[t.sym];
         return (
-          <div key={t.sym} style={{ display:"grid", gridTemplateColumns:"1.8fr 1fr .9fr .9fr .8fr .7fr 1.1fr .7fr .7fr", padding:"11px 18px", fontSize:".72rem", alignItems:"center", borderBottom:"1px solid rgba(10,26,92,0.22)" }}>
+          <div key={t.sym} className="token-row" style={{ display:"grid", gridTemplateColumns:"1.8fr 1fr .9fr .9fr .8fr .7fr 1.1fr .7fr .7fr", padding:"11px 18px", fontSize:".72rem", alignItems:"center", borderBottom:"1px solid rgba(10,26,92,0.22)" }}>
             {/* Token */}
             <div style={{ display:"flex", alignItems:"center", gap:9 }}>
               <span style={{ fontSize:"1.1rem" }}>{t.icon}</span>

@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import Tilt3D from "./components/Tilt3D";
 
 const WHALE_ITEMS = [
   { sym: "BTC", val: "+2.3%", price: "$64,194", alert: "🔴 ALERT 500M USDT déplacés" },
@@ -128,10 +129,12 @@ export default function Home() {
             <span style={{ width:6, height:6, borderRadius:"50%", background:"var(--red)", display:"inline-block", animation:"pulse-red 2s infinite" }} />
             INTELLIGENCE ARTIFICIELLE • TEMPS RÉEL • SÉCURISÉ
           </div>
-          <h1 style={{ fontFamily:"Orbitron,monospace", fontSize:"clamp(2.5rem,8vw,5rem)", fontWeight:900, marginBottom:16, lineHeight:1.05 }}>
-            <span style={{ color:"white" }}>AI-</span>
-            <span style={{ color:"var(--red)", textShadow:"0 0 40px var(--red-glow)" }}>BED</span>
-          </h1>
+          <Tilt3D intensity={18} glow={false} style={{ display:"inline-block", marginBottom:16 }}>
+            <h1 style={{ fontFamily:"Orbitron,monospace", fontSize:"clamp(2.5rem,8vw,5rem)", fontWeight:900, lineHeight:1.05, margin:0 }}>
+              <span style={{ color:"white" }}>AI-</span>
+              <span style={{ color:"var(--red)", textShadow:"0 0 40px var(--red-glow)" }}>BED</span>
+            </h1>
+          </Tilt3D>
           <h2 style={{ fontSize:"clamp(1rem,3vw,1.6rem)", color:"var(--muted2)", fontWeight:400, marginBottom:14 }}>Automatisez votre trading</h2>
           <p style={{ fontSize:".85rem", color:"var(--muted)", maxWidth:520, margin:"0 auto 36px", lineHeight:1.8 }}>
             Trois modes de trading adaptés à votre profil. Du long terme serein à l&apos;agressif ultra-rapide.

@@ -186,7 +186,7 @@ export default function DashboardPage() {
           {/* RIGHT */}
           <div style={{ display:"flex", flexDirection:"column", gap:8, minHeight:0, overflow:"hidden" }}>
             {/* Whale */}
-            <div style={{ background:"rgba(6,13,46,0.55)", border:"1px solid rgba(10,26,92,0.6)", borderRadius:10, overflow:"hidden" }}>
+            <div className="panel-3d" style={{ background:"rgba(6,13,46,0.55)", border:"1px solid rgba(10,26,92,0.6)", borderRadius:10, overflow:"hidden" }}>
               <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"9px 12px", borderBottom:"1px solid rgba(10,26,92,0.6)" }}>
                 <span style={{ fontSize:".64rem", fontWeight:700, color:"white", textTransform:"uppercase", letterSpacing:".08em" }}>🐋 Whale Tracker</span>
                 <span style={{ fontSize:".55rem", color:"var(--green)", display:"flex", alignItems:"center", gap:4 }}><span style={{ width:5, height:5, borderRadius:"50%", background:"var(--green)", display:"inline-block" }}/>Live</span>
@@ -195,7 +195,7 @@ export default function DashboardPage() {
             </div>
 
             {/* News */}
-            <div style={{ background:"rgba(6,13,46,0.55)", border:"1px solid rgba(10,26,92,0.6)", borderRadius:10, overflow:"hidden", flex:1, display:"flex", flexDirection:"column" }}>
+            <div className="panel-3d" style={{ background:"rgba(6,13,46,0.55)", border:"1px solid rgba(10,26,92,0.6)", borderRadius:10, overflow:"hidden", flex:1, display:"flex", flexDirection:"column" }}>
               <div style={{ padding:"9px 12px", borderBottom:"1px solid rgba(10,26,92,0.6)", flexShrink:0 }}>
                 <span style={{ fontSize:".64rem", fontWeight:700, color:"white", textTransform:"uppercase", letterSpacing:".08em" }}>📰 Actualités IA</span>
               </div>

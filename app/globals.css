@@ -98,3 +98,20 @@ button:active { transform: translateY(1px) scale(0.985); }
 
 /* Grille avec perspective de profondeur */
 .cyber-grid { transform: perspective(600px) rotateX(34deg) scale(1.6); transform-origin: center 30%; opacity: 0.5; }
+
+/* Lignes de la table de tokens : surélévation 3D au survol */
+.token-row { transition: transform .18s ease-out, background .18s, box-shadow .18s; transform-style: preserve-3d; }
+.token-row:hover {
+  transform: perspective(900px) translateZ(14px) scale(1.008);
+  background: rgba(192,57,43,0.06);
+  box-shadow: 0 8px 26px rgba(0,0,0,0.45), inset 3px 0 0 var(--red);
+  position: relative; z-index: 2;
+}
+
+/* Panneaux du dashboard : léger relief 3D au survol */
+.panel-3d { transition: transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s, border-color .25s; transform-style: preserve-3d; }
+.panel-3d:hover {
+  transform: perspective(1000px) translateY(-3px) rotateX(2deg);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.45), 0 0 22px rgba(74,144,217,0.12);
+  border-color: rgba(74,144,217,0.35) !important;
+}
