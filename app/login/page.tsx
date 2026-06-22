@@ -25,16 +25,39 @@ export default function LoginPage() {
     return () => clearInterval(id);
   }, [timer]);
 
-  function handleCredentials(e: React.FormEvent) {
+  async function handleCredentials(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError("");
-    setTimeout(() => {
+    try {
+      const res = await fetch("/api/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Impossible d'envoyer le code.");
+        setLoading(false);
+        return;
+      }
       setLoading(false);
       setStep("otp");
       setTimer(59);
       setTimeout(() => otpRefs.current[0]?.focus(), 100);
-    }, 800);
+    } catch {
+      setError("Erreur de connexion au serveur.");
+      setLoading(false);
+    }
+  }
+
+  async function resendOtp() {
+    setTimer(59);
+    await fetch("/api/send-otp", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
   }
 
   function handleOtpChange(i: number, val: string) {
@@ -49,17 +72,34 @@ export default function LoginPage() {
     if (e.key === "Backspace" && !otp[i] && i > 0) otpRefs.current[i-1]?.focus();
   }
 
-  function verifyOtp(code?: string) {
+  async function verifyOtp(code?: string) {
     const c = code || otp.join("");
     if (c.length < 6) { setError("Entrez les 6 chiffres."); return; }
     setLoading(true);
-    setTimeout(() => {
+    setError("");
+    try {
+      const res = await fetch("/api/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, code: c }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Code incorrect.");
+        setOtp(["","","","","",""]);
+        setTimeout(() => otpRefs.current[0]?.focus(), 50);
+        setLoading(false);
+        return;
+      }
       localStorage.setItem("aibed_user", JSON.stringify({
-        email, role: isFounder ? "founder" : "user",
-        plan: isFounder ? "elite" : "starter", loggedIn: true,
+        email, role: data.role || (isFounder ? "founder" : "user"),
+        plan: data.plan || (isFounder ? "elite" : "starter"), loggedIn: true,
       }));
       router.push("/dashboard");
-    }, 600);
+    } catch {
+      setError("Erreur de connexion au serveur.");
+      setLoading(false);
+    }
   }
 
   const s: Record<string, React.CSSProperties> = {
@@ -172,7 +212,7 @@ export default function LoginPage() {
               Pas reçu ?{" "}
               {timer > 0
                 ? <span>Renvoyer dans {timer}s</span>
-                : <a href="#" onClick={e=>{e.preventDefault();setTimer(59);}} style={{ color:"var(--red)", textDecoration:"none" }}>Renvoyer le code</a>
+                : <a href="#" onClick={e=>{e.preventDefault();resendOtp();}} style={{ color:"var(--red)", textDecoration:"none" }}>Renvoyer le code</a>
               }
             </div>
           </>}
