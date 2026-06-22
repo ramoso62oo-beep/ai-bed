@@ -6,6 +6,7 @@ import { useState } from "react";
 const NAV = [
   ["📊","Dashboard","/dashboard"],
   ["🤖","Mes bots","/mes-bots"],
+  ["🔌","Connexions","/connexions"],
   ["📈","Positions","/positions"],
   ["🐋","Whale Tracker","/whale-tracker"],
   ["⚡","Signaux IA","/signaux"],
