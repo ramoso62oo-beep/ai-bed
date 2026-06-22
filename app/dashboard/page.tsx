@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import TokenTable from "../components/TokenTable";
 import CandleChart from "../components/CandleChart";
+import Tooltip from "../components/Tooltip";
 
 const POSITIONS = [
   { sym:"BTCUSDT",    side:"LONG",  mode:"PATIENT",   entry:64125, current:64310, pnl:+0.29, sl:63612, tp:65279 },
@@ -27,11 +28,17 @@ const NEWS = [
 const AVATARS = ["🐂","🦅","🐉","🦁","🐺","🦊","🤖","👾","🎯","💀","🌙","⚡","🔥","💎","🚀","🌊","🎭","🏆","👑","⚔️"];
 
 const MODE_COLOR: Record<string, string> = { PATIENT:"#4a90d9", ACTIF:"#27ae60", AGRESSIF:"#c0392b" };
+const MODE_TIP: Record<string, string> = {
+  PATIENT: "Mode prudent : peu de trades, faible risque, vise une croissance lente et régulière (15–40%/an).",
+  ACTIF: "Mode équilibré : swing trading, risque modéré, plus de positions (40–120%/an).",
+  AGRESSIF: "Mode offensif : scalping rapide, risque élevé, gains et pertes potentiellement importants (100–500%/an).",
+};
 
 export default function DashboardPage() {
   const [botOn, setBotOn] = useState(true);
   const [mode, setMode] = useState("ACTIF");
   const [balance, setBalance] = useState(9808.43);
+  const [posList, setPosList] = useState(POSITIONS);
   const [avatar, setAvatar] = useState(0);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [user, setUser] = useState<{email?:string;role?:string;plan?:string}>({});
@@ -86,12 +93,14 @@ export default function DashboardPage() {
           <div style={{ fontSize:".65rem", fontWeight:700, color:"var(--red)", letterSpacing:".1em" }}>BOT #{avatar+1}</div>
           <div style={{ fontSize:".55rem", color:"var(--muted)", marginTop:2 }}>Mode {mode} • {botOn?"En ligne":"En pause"}</div>
           {/* Toggle */}
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, marginTop:9 }}>
-            <div onClick={()=>setBotOn(!botOn)} style={{ width:34, height:17, borderRadius:9, background:botOn?"rgba(39,174,96,0.3)":"rgba(192,57,43,0.2)", border:`1px solid ${botOn?"rgba(39,174,96,0.4)":"rgba(192,57,43,0.3)"}`, position:"relative", cursor:"pointer", transition:"all .2s" }}>
-              <div style={{ width:11, height:11, borderRadius:"50%", background:botOn?"var(--green)":"var(--red)", position:"absolute", top:2, left:botOn?20:2, transition:"left .2s" }}/>
+          <Tooltip text={botOn ? "Le bot est ACTIF : il analyse le marché et ouvre/ferme des positions automatiquement. Cliquez pour le mettre en pause." : "Le bot est EN PAUSE : il ne prend aucune nouvelle position. Cliquez pour le réactiver."}>
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, marginTop:9, cursor:"pointer" }}>
+              <div onClick={()=>setBotOn(!botOn)} style={{ width:34, height:17, borderRadius:9, background:botOn?"rgba(39,174,96,0.3)":"rgba(192,57,43,0.2)", border:`1px solid ${botOn?"rgba(39,174,96,0.4)":"rgba(192,57,43,0.3)"}`, position:"relative", cursor:"pointer", transition:"all .2s" }}>
+                <div style={{ width:11, height:11, borderRadius:"50%", background:botOn?"var(--green)":"var(--red)", position:"absolute", top:2, left:botOn?20:2, transition:"left .2s" }}/>
+              </div>
+              <span style={{ fontSize:".58rem", color:botOn?"var(--green)":"var(--red)", fontWeight:700 }}>{botOn?"Actif":"Pause"}</span>
             </div>
-            <span style={{ fontSize:".58rem", color:botOn?"var(--green)":"var(--red)", fontWeight:700 }}>{botOn?"Actif":"Pause"}</span>
-          </div>
+          </Tooltip>
           {isFounder && <div style={{ marginTop:7, fontSize:".52rem", background:"rgba(192,57,43,0.1)", border:"1px solid rgba(192,57,43,0.3)", borderRadius:10, padding:"2px 8px", color:"var(--red)", fontWeight:700, letterSpacing:".08em" }}>👑 FONDATEUR</div>}
         </div>
 
@@ -117,8 +126,10 @@ export default function DashboardPage() {
         <div style={{ display:"flex", alignItems:"center", gap:10, padding:"0 18px", height:56, borderBottom:"1px solid rgba(10,26,92,0.6)", background:"rgba(4,7,26,0.8)", flexShrink:0, zIndex:10 }}>
           <span style={{ fontFamily:"var(--font-orbitron,monospace)", fontSize:".75rem", fontWeight:700, color:"white", letterSpacing:".12em" }}>Dashboard</span>
           <div style={{ display:"flex", gap:6, marginLeft:12 }}>
-            {["PATIENT","ACTIF","AGRESSIF"].map(m=>(
-              <button key={m} onClick={()=>setMode(m)} style={{ fontSize:".58rem", fontWeight:700, padding:"4px 11px", borderRadius:20, cursor:"pointer", border:`1px solid ${MODE_COLOR[m]}`, color:mode===m?"white":MODE_COLOR[m], background:mode===m?MODE_COLOR[m]:"transparent", letterSpacing:".08em", transition:"all .2s" }}>{m}</button>
+            {(["PATIENT","ACTIF","AGRESSIF"] as const).map(m=>(
+              <Tooltip key={m} text={MODE_TIP[m]}>
+                <button onClick={()=>setMode(m)} style={{ fontSize:".58rem", fontWeight:700, padding:"4px 11px", borderRadius:20, cursor:"pointer", border:`1px solid ${MODE_COLOR[m]}`, color:mode===m?"white":MODE_COLOR[m], background:mode===m?MODE_COLOR[m]:"transparent", letterSpacing:".08em", transition:"all .2s" }}>{m}</button>
+              </Tooltip>
             ))}
           </div>
           <div style={{ marginLeft:"auto", display:"flex", alignItems:"center", gap:10 }}>
@@ -149,7 +160,9 @@ export default function DashboardPage() {
             <div style={{ background:"rgba(6,13,46,0.55)", border:"1px solid rgba(10,26,92,0.6)", borderRadius:10, flex:1, overflow:"hidden", display:"flex", flexDirection:"column" }}>
               <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"9px 13px", borderBottom:"1px solid rgba(10,26,92,0.6)", flexShrink:0 }}>
                 <span style={{ fontSize:".66rem", fontWeight:700, color:"white", textTransform:"uppercase", letterSpacing:".08em" }}>📋 Positions ouvertes</span>
-                <button style={{ fontSize:".6rem", background:"rgba(192,57,43,0.1)", border:"1px solid rgba(192,57,43,0.3)", color:"var(--red)", padding:"4px 10px", borderRadius:5, cursor:"pointer" }}>+ Nouvelle</button>
+                <Tooltip text="Réinitialise la liste des positions ouvertes par le bot.">
+                  <button onClick={()=>setPosList(POSITIONS)} style={{ fontSize:".6rem", background:"rgba(192,57,43,0.1)", border:"1px solid rgba(192,57,43,0.3)", color:"var(--red)", padding:"4px 10px", borderRadius:5, cursor:"pointer" }}>↻ Rafraîchir</button>
+                </Tooltip>
               </div>
               <div style={{ overflow:"auto", flex:1 }}>
                 <table style={{ width:"100%", borderCollapse:"collapse", fontSize:".64rem" }}>
@@ -161,7 +174,10 @@ export default function DashboardPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {POSITIONS.map(p=>(
+                    {posList.length === 0 && (
+                      <tr><td colSpan={7} style={{ padding:"14px 10px", color:"var(--muted)", fontSize:".62rem" }}>Aucune position ouverte.</td></tr>
+                    )}
+                    {posList.map(p=>(
                       <tr key={p.sym} style={{ borderBottom:"1px solid rgba(10,26,92,0.3)" }}>
                         <td style={{ padding:"8px 10px", fontWeight:700, color:"white" }}>{p.sym}</td>
                         <td style={{ padding:"8px 10px" }}><span style={{ fontSize:".52rem", padding:"2px 6px", borderRadius:3, fontWeight:700, letterSpacing:".08em", background:`${MODE_COLOR[p.mode]}18`, color:MODE_COLOR[p.mode] }}>{p.mode}</span></td>
@@ -169,7 +185,7 @@ export default function DashboardPage() {
                         <td style={{ padding:"8px 10px", color:"var(--muted2)" }}>{p.current}</td>
                         <td style={{ padding:"8px 10px", color:p.pnl>=0?"var(--green)":"var(--red)", fontWeight:700 }}>{p.pnl>=0?"+":""}{p.pnl}%</td>
                         <td style={{ padding:"8px 10px", color:"var(--muted)", fontSize:".6rem" }}>{p.sl} / {p.tp}</td>
-                        <td style={{ padding:"8px 10px" }}><button style={{ background:"rgba(192,57,43,0.08)", border:"1px solid rgba(192,57,43,0.25)", borderRadius:4, color:"var(--red)", fontSize:".56rem", padding:"3px 7px", cursor:"pointer" }}>Fermer</button></td>
+                        <td style={{ padding:"8px 10px" }}><button onClick={()=>setPosList(l=>l.filter(x=>x.sym!==p.sym))} style={{ background:"rgba(192,57,43,0.08)", border:"1px solid rgba(192,57,43,0.25)", borderRadius:4, color:"var(--red)", fontSize:".56rem", padding:"3px 7px", cursor:"pointer" }}>Fermer</button></td>
                       </tr>
                     ))}
                   </tbody>

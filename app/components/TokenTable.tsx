@@ -32,6 +32,8 @@ function Spark({ data, up }: { data:number[]; up:boolean }) {
 export default function TokenTable() {
   const [tab, setTab] = useState(0);
   const [tokens, setTokens] = useState(BASE);
+  const [trade, setTrade] = useState<Token|null>(null);
+  const [assigned, setAssigned] = useState<string[]>([]);
   const flash = useRef<Record<string,string>>({});
 
   // Mise à jour des prix en temps réel
@@ -99,10 +101,31 @@ export default function TokenTable() {
               <span title={t.mintRenounced?"Mint abandonné":"Mint actif"} style={{ fontSize:".7rem" }}>{t.mintRenounced?"✅":"❌"}</span>
               <span style={{ fontSize:".52rem", padding:"1px 5px", borderRadius:5, background:`${RISK[t.risk].c}22`, color:RISK[t.risk].c, fontWeight:700, alignSelf:"center" }}>{RISK[t.risk].l}</span>
             </div>
-            <button style={{ padding:"5px 12px", borderRadius:6, background:"var(--red)", border:"none", color:"white", fontSize:".62rem", fontWeight:700, cursor:"pointer", boxShadow:"0 0 10px var(--red-glow)" }}>Trader</button>
+            <button onClick={()=>setTrade(t)} style={{ padding:"5px 12px", borderRadius:6, background:assigned.includes(t.sym)?"rgba(39,174,96,0.2)":"var(--red)", border:"none", color:assigned.includes(t.sym)?"var(--green)":"white", fontSize:".62rem", fontWeight:700, cursor:"pointer", boxShadow:assigned.includes(t.sym)?"none":"0 0 10px var(--red-glow)" }}>{assigned.includes(t.sym)?"✓ Bot":"Trader"}</button>
           </div>
         );
       })}
+
+      {trade && (
+        <div onClick={()=>setTrade(null)} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.6)", zIndex:300, display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}>
+          <div onClick={e=>e.stopPropagation()} style={{ background:"rgba(6,13,46,0.98)", border:"1px solid rgba(74,111,165,0.3)", borderRadius:14, padding:24, width:"100%", maxWidth:360 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
+              <span style={{ fontSize:"1.5rem" }}>{trade.icon}</span>
+              <div><div style={{ fontSize:".95rem", fontWeight:700, color:"white" }}>{trade.sym}</div><div style={{ fontSize:".62rem", color:"var(--muted)" }}>{trade.name}</div></div>
+            </div>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginBottom:16, fontSize:".68rem" }}>
+              <div style={{ background:"rgba(4,7,26,0.5)", borderRadius:7, padding:"8px 10px" }}><div style={{ color:"var(--muted)" }}>Prix</div><div style={{ color:"white", fontWeight:600 }}>${trade.price<0.001?trade.price.toExponential(2):trade.price}</div></div>
+              <div style={{ background:"rgba(4,7,26,0.5)", borderRadius:7, padding:"8px 10px" }}><div style={{ color:"var(--muted)" }}>24h</div><div style={{ color:trade.ch24h>=0?"var(--green)":"var(--red)", fontWeight:600 }}>{trade.ch24h>=0?"+":""}{trade.ch24h}%</div></div>
+              <div style={{ background:"rgba(4,7,26,0.5)", borderRadius:7, padding:"8px 10px" }}><div style={{ color:"var(--muted)" }}>MCap</div><div style={{ color:"white" }}>${trade.mc}</div></div>
+              <div style={{ background:"rgba(4,7,26,0.5)", borderRadius:7, padding:"8px 10px" }}><div style={{ color:"var(--muted)" }}>Sécurité</div><div style={{ color:RISK[trade.risk].c, fontWeight:600 }}>{RISK[trade.risk].l}</div></div>
+            </div>
+            <button onClick={()=>{ setAssigned(a=>a.includes(trade.sym)?a:[...a,trade.sym]); setTrade(null); }} style={{ width:"100%", padding:12, borderRadius:8, background:"var(--red)", border:"none", color:"white", fontSize:".78rem", fontWeight:700, cursor:"pointer", boxShadow:"0 0 16px var(--red-glow)" }}>
+              🤖 Confier ce token à mon bot
+            </button>
+            <button onClick={()=>setTrade(null)} style={{ width:"100%", marginTop:9, padding:10, borderRadius:8, background:"transparent", border:"1px solid rgba(74,111,165,0.3)", color:"var(--muted2)", fontSize:".72rem", cursor:"pointer" }}>Fermer</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
