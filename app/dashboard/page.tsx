@@ -5,25 +5,14 @@ import { useSession } from "next-auth/react";
 import TokenTable from "../components/TokenTable";
 import CandleChart from "../components/CandleChart";
 import Tooltip from "../components/Tooltip";
+import WhaleFeed from "../components/WhaleFeed";
+import NewsFeed from "../components/NewsFeed";
 
 const POSITIONS = [
   { sym:"BTCUSDT",    side:"LONG",  mode:"PATIENT",   entry:64125, current:64310, pnl:+0.29, sl:63612, tp:65279 },
   { sym:"TNSRUSDT",   side:"LONG",  mode:"ACTIF",     entry:.0436, current:.0441, pnl:+1.15, sl:.0432, tp:.0444 },
   { sym:"RESOLVUSDT", side:"SHORT", mode:"AGRESSIF",  entry:.0249, current:.0244, pnl:-2.01, sl:.0252, tp:.0238 },
   { sym:"STRAXUSDT",  side:"LONG",  mode:"ACTIF",     entry:.01084,current:.01091,pnl:+0.65, sl:.01075,tp:.01103 },
-];
-const WHALES = [
-  { icon:"🐋", sym:"BTC", desc:"500M USDT sortis de Binance", val:"-1.2%", pos:false },
-  { icon:"🟢", sym:"PEPE", desc:"Whale achète 2B tokens", val:"+18%", pos:true },
-  { icon:"🔴", sym:"ETH", desc:"120M déplacés vers cold wallet", val:"-0.8%", pos:false },
-  { icon:"🟢", sym:"SOL", desc:"Achat massif CEX → DEX", val:"+3.4%", pos:true },
-];
-const NEWS = [
-  { title:"La SEC approuve 3 nouveaux ETF Bitcoin spot", tag:"BTC", time:"12 min" },
-  { title:"Binance annonce le listing de 5 nouveaux memecoins", tag:"ALTCOINS", time:"28 min" },
-  { title:"Elon Musk tweete sur DOGE — pump de 8% en cours", tag:"DOGE", time:"45 min" },
-  { title:"MiCA : nouvelles règles européennes entrent en vigueur", tag:"RÉGULATION", time:"1h" },
-  { title:"Solana dépasse 200$ — ATH historique approche", tag:"SOL", time:"2h" },
 ];
 const AVATARS = ["🐂","🦅","🐉","🦁","🐺","🦊","🤖","👾","🎯","💀","🌙","⚡","🔥","💎","🚀","🌊","🎭","🏆","👑","⚔️"];
 
@@ -202,18 +191,7 @@ export default function DashboardPage() {
                 <span style={{ fontSize:".64rem", fontWeight:700, color:"white", textTransform:"uppercase", letterSpacing:".08em" }}>🐋 Whale Tracker</span>
                 <span style={{ fontSize:".55rem", color:"var(--green)", display:"flex", alignItems:"center", gap:4 }}><span style={{ width:5, height:5, borderRadius:"50%", background:"var(--green)", display:"inline-block" }}/>Live</span>
               </div>
-              <div style={{ padding:"10px 12px", display:"flex", flexDirection:"column", gap:6 }}>
-                {WHALES.map((w,i)=>(
-                  <div key={i} style={{ display:"flex", alignItems:"center", gap:8, padding:"6px 8px", background:"rgba(4,7,26,0.4)", borderRadius:6, border:"1px solid rgba(10,26,92,0.6)" }}>
-                    <span style={{ fontSize:".85rem" }}>{w.icon}</span>
-                    <div style={{ flex:1 }}>
-                      <div style={{ fontSize:".65rem", fontWeight:700, color:"white" }}>{w.sym}</div>
-                      <div style={{ fontSize:".58rem", color:"var(--muted)" }}>{w.desc}</div>
-                    </div>
-                    <span style={{ fontSize:".65rem", fontWeight:700, color:w.pos?"var(--green)":"var(--red)" }}>{w.val}</span>
-                  </div>
-                ))}
-              </div>
+              <WhaleFeed compact />
             </div>
 
             {/* News */}
@@ -221,16 +199,8 @@ export default function DashboardPage() {
               <div style={{ padding:"9px 12px", borderBottom:"1px solid rgba(10,26,92,0.6)", flexShrink:0 }}>
                 <span style={{ fontSize:".64rem", fontWeight:700, color:"white", textTransform:"uppercase", letterSpacing:".08em" }}>📰 Actualités IA</span>
               </div>
-              <div style={{ padding:"10px 12px", display:"flex", flexDirection:"column", gap:6, overflow:"auto", flex:1 }}>
-                {NEWS.map((n,i)=>(
-                  <div key={i} style={{ padding:"7px 9px", background:"rgba(4,7,26,0.4)", borderRadius:6, border:"1px solid rgba(10,26,92,0.6)", cursor:"pointer" }}>
-                    <div style={{ fontSize:".64rem", color:"var(--text)", fontWeight:500, lineHeight:1.4, marginBottom:3 }}>{n.title}</div>
-                    <div style={{ display:"flex", gap:8, fontSize:".56rem" }}>
-                      <span style={{ color:"var(--red)" }}>{n.tag}</span>
-                      <span style={{ color:"var(--muted)" }}>il y a {n.time}</span>
-                    </div>
-                  </div>
-                ))}
+              <div style={{ overflow:"auto", flex:1 }}>
+                <NewsFeed compact />
               </div>
             </div>
           </div>
