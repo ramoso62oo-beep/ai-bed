@@ -101,7 +101,7 @@ export default function DashboardPage() {
               <span style={{ fontSize:".58rem", color:botOn?"var(--green)":"var(--red)", fontWeight:700 }}>{botOn?"Actif":"Pause"}</span>
             </div>
           </Tooltip>
-          {isFounder && <div style={{ marginTop:7, fontSize:".52rem", background:"rgba(192,57,43,0.1)", border:"1px solid rgba(192,57,43,0.3)", borderRadius:10, padding:"2px 8px", color:"var(--red)", fontWeight:700, letterSpacing:".08em" }}>👑 FONDATEUR</div>}
+          {isFounder && <div style={{ display:"inline-block", marginTop:8, fontSize:".52rem", background:"rgba(192,57,43,0.1)", border:"1px solid rgba(192,57,43,0.3)", borderRadius:20, padding:"3px 10px", color:"var(--red)", fontWeight:700, letterSpacing:".08em" }}>👑 FONDATEUR</div>}
         </div>
 
         {/* Nav */}
