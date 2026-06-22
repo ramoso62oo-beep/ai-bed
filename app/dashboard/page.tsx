@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { useSession } from "next-auth/react";
 
 const POSITIONS = [
   { sym:"BTCUSDT",    side:"LONG",  mode:"PATIENT",   entry:64125, current:64310, pnl:+0.29, sl:63612, tp:65279 },
@@ -33,10 +34,17 @@ export default function DashboardPage() {
   const [avatar, setAvatar] = useState(0);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [user, setUser] = useState<{email?:string;role?:string;plan?:string}>({});
+  const { data: session } = useSession();
 
   useEffect(() => {
-    try { setUser(JSON.parse(localStorage.getItem("aibed_user")||"{}")); } catch {}
-  }, []);
+    // Priorité à la session Google si présente, sinon localStorage
+    if (session?.user?.email) {
+      const u = session.user as { email?:string; role?:string; plan?:string };
+      setUser({ email:u.email, role:u.role, plan:u.plan });
+    } else {
+      try { setUser(JSON.parse(localStorage.getItem("aibed_user")||"{}")); } catch {}
+    }
+  }, [session]);
 
   // Price chart
   useEffect(() => {
