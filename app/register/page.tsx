@@ -27,20 +27,44 @@ function RegisterForm() {
   const [loading, setLoading] = useState(false);
   const isFounder = email.toLowerCase() === FOUNDER_EMAIL;
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (pass !== pass2) { setError("Les mots de passe ne correspondent pas."); return; }
     if (pass.length < 8) { setError("Le mot de passe doit contenir au moins 8 caractères."); return; }
     setError(""); setLoading(true);
-    setTimeout(() => {
-      localStorage.setItem("aibed_user", JSON.stringify({
-        email, phone: dial.split(" ")[0] + phone, fname, lname,
-        role: isFounder ? "founder" : "user",
-        plan: isFounder ? "elite" : plan, loggedIn: false,
-      }));
-      setLoading(false);
+
+    localStorage.setItem("aibed_user", JSON.stringify({
+      email, phone: dial.split(" ")[0] + phone, fname, lname,
+      role: isFounder ? "founder" : "user",
+      plan: isFounder ? "elite" : plan, loggedIn: false,
+    }));
+
+    // Fondateur → accès gratuit, on passe directement à la connexion 2FA
+    if (isFounder) {
       router.push("/login");
-    }, 800);
+      return;
+    }
+
+    // Sinon → redirection vers le paiement Stripe
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan, email }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else if (data.founder) {
+        router.push("/login");
+      } else {
+        setError(data.error || "Erreur lors du paiement.");
+        setLoading(false);
+      }
+    } catch {
+      setError("Impossible de contacter le serveur de paiement.");
+      setLoading(false);
+    }
   }
 
   const inp: React.CSSProperties = { width:"100%", background:"rgba(4,7,26,0.6)", border:"1px solid rgba(74,111,165,0.3)", borderRadius:8, padding:"11px 14px", color:"white", fontSize:".78rem", outline:"none", fontFamily:"Inter,sans-serif" };
@@ -117,7 +141,7 @@ function RegisterForm() {
               <div><label style={lbl}>Confirmer</label><input style={inp} type="password" value={pass2} onChange={e=>setPass2(e.target.value)} placeholder="••••••••" required /></div>
             </div>
             <button type="submit" disabled={loading} style={{ width:"100%", padding:13, borderRadius:8, background: isFounder ? "linear-gradient(135deg,#8b0000,var(--red))" : "var(--red)", color:"white", border:"none", fontSize:".8rem", fontWeight:700, letterSpacing:".1em", cursor:"pointer", boxShadow:"0 0 20px var(--red-glow)" }}>
-              {loading ? "⏳ Création..." : isFounder ? "👑 Créer mon compte Fondateur (GRATUIT)" : "Créer mon compte →"}
+              {loading ? "⏳ Redirection vers le paiement..." : isFounder ? "👑 Créer mon compte Fondateur (GRATUIT)" : `Payer ${PLANS.find(p=>p.id===plan)?.price}€/mois et continuer →`}
             </button>
           </form>
 
