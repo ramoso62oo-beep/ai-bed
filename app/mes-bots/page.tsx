@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
 import Tooltip from "../components/Tooltip";
+import ConnectBinance from "../components/ConnectBinance";
 
 type Bot = { id:number; avatar:string; name:string; mode:string; pnl:number; on:boolean };
 const AVATARS = ["🐂","🦅","🐉","🦁","🐺","🦊","🤖","👾","🎯","💀","🌙","⚡","🔥","💎","🚀","🌊","🎭","🏆","👑","⚔️"];
@@ -13,7 +14,7 @@ const DEFAULT: Bot[] = [
 ];
 
 export default function MesBotsPage() {
-  const [user, setUser] = useState<{role?:string;plan?:string}>({});
+  const [user, setUser] = useState<{email?:string;role?:string;plan?:string}>({});
   const [bots, setBots] = useState<Bot[]>([]);
   const [modal, setModal] = useState(false);
   const [newName, setNewName] = useState("");
@@ -46,9 +47,14 @@ export default function MesBotsPage() {
       <div className="cyber-grid" />
       <Sidebar founder={founder} />
       <div style={{ overflowY:"auto", padding:"78px 28px 40px", position:"relative", zIndex:1 }}>
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:22 }}>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:18 }}>
           <h1 style={{ fontFamily:"var(--font-orbitron,monospace)", fontSize:"1.3rem", fontWeight:900, color:"white" }}>🤖 Mes bots</h1>
           <span style={{ fontSize:".7rem", color:"var(--muted2)" }}>{bots.length} / {max} bots</span>
+        </div>
+
+        {/* Connexion Binance réelle */}
+        <div style={{ marginBottom:24, maxWidth:520 }}>
+          <ConnectBinance email={user.email} />
         </div>
         <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(240px,1fr))", gap:16 }}>
           {bots.map(b=>(
