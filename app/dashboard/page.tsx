@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
+import TokenTable from "../components/TokenTable";
 
 const POSITIONS = [
   { sym:"BTCUSDT",    side:"LONG",  mode:"PATIENT",   entry:64125, current:64310, pnl:+0.29, sl:63612, tp:65279 },
@@ -139,21 +140,21 @@ export default function DashboardPage() {
 
         {/* Nav */}
         <div style={{ padding:"6px 0", flex:1 }}>
-          {[["📊","Dashboard",true],["🤖","Mes bots",false],["📈","Positions",false],["🐋","Whale Tracker",false],["⚡","Signaux IA",false]].map(([ic,lb,act])=>(
-            <div key={String(lb)} style={{ ...sb, color:act?"white":"var(--muted)", borderLeftColor:act?"var(--red)":"transparent", background:act?"rgba(192,57,43,0.06)":"transparent" }}>
+          {[["📊","Dashboard","/dashboard",true],["🤖","Mes bots","/mes-bots",false],["📈","Positions","/positions",false],["🐋","Whale Tracker","/whale-tracker",false],["⚡","Signaux IA","/signaux",false]].map(([ic,lb,href,act])=>(
+            <Link key={String(lb)} href={String(href)} style={{ ...sb, textDecoration:"none", color:act?"white":"var(--muted)", borderLeftColor:act?"var(--red)":"transparent", background:act?"rgba(192,57,43,0.06)":"transparent" }}>
               <span>{ic}</span><span>{lb}</span>
-            </div>
+            </Link>
           ))}
           <div style={{ padding:"6px 14px 4px", fontSize:".5rem", color:"#1a3a6e", textTransform:"uppercase", letterSpacing:".18em", marginTop:8 }}>Compte</div>
-          {[["💼","Portefeuille"],["📰","Actualités"],["⚙️","Paramètres"]].map(([ic,lb])=>(
-            <div key={String(lb)} style={sb}><span>{ic}</span><span>{lb}</span></div>
+          {[["💼","Portefeuille","/portefeuille"],["📰","Actualités","/actualites"],["⚙️","Paramètres","/settings"]].map(([ic,lb,href])=>(
+            <Link key={String(lb)} href={String(href)} style={{ ...sb, textDecoration:"none" }}><span>{ic}</span><span>{lb}</span></Link>
           ))}
-          <Link href="/" style={{ ...sb, marginTop:4 }}><span>🚪</span><span>Déconnexion</span></Link>
+          <Link href="/" style={{ ...sb, marginTop:4, textDecoration:"none" }}><span>🚪</span><span>Déconnexion</span></Link>
         </div>
       </aside>
 
       {/* MAIN */}
-      <div style={{ display:"flex", flexDirection:"column", height:"100vh", overflow:"hidden" }}>
+      <div style={{ display:"flex", flexDirection:"column", height:"100vh", overflowY:"auto" }}>
 
         {/* Topbar */}
         <div style={{ display:"flex", alignItems:"center", gap:10, padding:"0 18px", height:56, borderBottom:"1px solid rgba(10,26,92,0.6)", background:"rgba(4,7,26,0.8)", flexShrink:0, zIndex:10 }}>
@@ -181,7 +182,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Grid */}
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 300px", gap:8, padding:"0 16px 10px", flex:1, overflow:"hidden", minHeight:0 }}>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 300px", gap:8, padding:"0 16px 10px", height:440, flexShrink:0, minHeight:0 }}>
 
           <div style={{ display:"flex", flexDirection:"column", gap:8, minHeight:0, overflow:"hidden" }}>
             {/* Chart */}
@@ -268,6 +269,12 @@ export default function DashboardPage() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Marché — Table de tokens style BullX */}
+        <div style={{ padding:"4px 16px 24px" }}>
+          <div style={{ fontSize:".7rem", fontWeight:700, color:"white", textTransform:"uppercase", letterSpacing:".08em", margin:"6px 2px 10px" }}>🪙 Marché — Découverte de tokens</div>
+          <TokenTable />
         </div>
       </div>
     </div>
