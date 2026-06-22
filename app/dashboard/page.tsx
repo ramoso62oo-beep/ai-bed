@@ -101,7 +101,7 @@ export default function DashboardPage() {
 
         {/* Nav */}
         <div style={{ padding:"6px 0", flex:1 }}>
-          {[["📊","Dashboard","/dashboard",true],["🤖","Mes bots","/mes-bots",false],["🔌","Connexions","/connexions",false],["📈","Positions","/positions",false],["🐋","Whale Tracker","/whale-tracker",false],["⚡","Signaux IA","/signaux",false]].map(([ic,lb,href,act])=>(
+          {[["📊","Dashboard","/dashboard",true],["🤖","Mes bots","/mes-bots",false],["🌍","Marché","/marche",false],["🔌","Connexions","/connexions",false],["📈","Positions","/positions",false],["🐋","Whale Tracker","/whale-tracker",false],["⚡","Signaux IA","/signaux",false]].map(([ic,lb,href,act])=>(
             <Link key={String(lb)} href={String(href)} style={{ ...sb, textDecoration:"none", color:act?"white":"var(--muted)", borderLeftColor:act?"var(--red)":"transparent", background:act?"rgba(192,57,43,0.06)":"transparent" }}>
               <span>{ic}</span><span>{lb}</span>
             </Link>

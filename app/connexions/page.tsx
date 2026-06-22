@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
 import Tooltip from "../components/Tooltip";
-import ConnectBinance from "../components/ConnectBinance";
+import ConnectExchange from "../components/ConnectExchange";
 import ConnectWallet from "../components/ConnectWallet";
 
 const MODES = [
@@ -13,10 +13,10 @@ const MODES = [
 
 const EXCHANGES = [
   { id:"binance", name:"Binance", emoji:"🟡", ready:true },
-  { id:"bybit", name:"Bybit", emoji:"🟠", ready:false },
-  { id:"okx", name:"OKX", emoji:"⚫", ready:false },
-  { id:"kucoin", name:"KuCoin", emoji:"🟢", ready:false },
-  { id:"kraken", name:"Kraken", emoji:"🟣", ready:false },
+  { id:"bybit", name:"Bybit", emoji:"🟠", ready:true },
+  { id:"okx", name:"OKX", emoji:"⚫", ready:true },
+  { id:"kucoin", name:"KuCoin", emoji:"🟢", ready:true },
+  { id:"kraken", name:"Kraken", emoji:"🟣", ready:true },
   { id:"coinbase", name:"Coinbase", emoji:"🔵", ready:false },
 ];
 
@@ -83,11 +83,11 @@ export default function ConnexionsPage() {
               </div>
             ))}
           </div>
-          {exchange==="binance"
-            ? <div style={{ maxWidth:520 }}><ConnectBinance email={user.email} /></div>
+          {EXCHANGES.find(e=>e.id===exchange)?.ready
+            ? <div style={{ maxWidth:520 }}><ConnectExchange email={user.email} exchange={exchange} /></div>
             : <div style={{ ...card, maxWidth:520 }}>
-                <div style={{ fontSize:".8rem", fontWeight:700, color:"white", marginBottom:6 }}>{EXCHANGES.find(e=>e.id===exchange)?.name} — intégration en cours</div>
-                <div style={{ fontSize:".7rem", color:"var(--muted)", lineHeight:1.5 }}>Cette plateforme sera bientôt connectable. Votre choix est enregistré — vous serez prévenu dès qu&apos;elle est disponible. En attendant, vous pouvez utiliser Binance (testnet pour tester sans risque).</div>
+                <div style={{ fontSize:".8rem", fontWeight:700, color:"white", marginBottom:6 }}>{EXCHANGES.find(e=>e.id===exchange)?.name} — bientôt</div>
+                <div style={{ fontSize:".7rem", color:"var(--muted)", lineHeight:1.5 }}>Cette plateforme sera bientôt connectable. Votre choix est enregistré. En attendant, Binance, Bybit, OKX, KuCoin et Kraken sont disponibles.</div>
               </div>
           }
         </>}

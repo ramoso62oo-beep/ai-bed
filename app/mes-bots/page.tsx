@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
 import Tooltip from "../components/Tooltip";
-import ConnectBinance from "../components/ConnectBinance";
+import ConnectExchange from "../components/ConnectExchange";
 
 type Bot = { id:number; avatar:string; name:string; mode:string; pnl:number; on:boolean };
 const AVATARS = ["🐂","🦅","🐉","🦁","🐺","🦊","🤖","👾","🎯","💀","🌙","⚡","🔥","💎","🚀","🌊","🎭","🏆","👑","⚔️"];
@@ -52,9 +52,9 @@ export default function MesBotsPage() {
           <span style={{ fontSize:".7rem", color:"var(--muted2)" }}>{bots.length} / {max} bots</span>
         </div>
 
-        {/* Connexion Binance réelle */}
+        {/* Connexion exchange réelle */}
         <div style={{ marginBottom:24, maxWidth:520 }}>
-          <ConnectBinance email={user.email} />
+          <ConnectExchange email={user.email} exchange={(typeof window!=="undefined" && localStorage.getItem("aibed_exchange")) || "binance"} />
         </div>
         <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(240px,1fr))", gap:16 }}>
           {bots.map(b=>(
