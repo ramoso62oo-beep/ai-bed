@@ -40,3 +40,29 @@ export async function getPrice(symbol: string, testnet: boolean) {
   const d = await res.json();
   return parseFloat(d.price);
 }
+
+// Bougies (klines) — public. Renvoie les prix de clôture.
+export async function getCloses(symbol: string, interval: string, limit: number, testnet: boolean): Promise<number[]> {
+  const res = await fetch(`${binanceBase(testnet)}/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`);
+  const d = await res.json();
+  if (!Array.isArray(d)) throw new Error(d.msg || "klines indisponibles");
+  return d.map((k: unknown[]) => parseFloat(k[4] as string));
+}
+
+// Solde libre d'un actif
+export async function getFreeBalance(apiKey: string, secret: string, testnet: boolean, asset: string): Promise<number> {
+  const acc = await binanceSigned(apiKey, secret, testnet, "GET", "/api/v3/account");
+  const b = (acc.balances || []).find((x: { asset: string }) => x.asset === asset);
+  return b ? parseFloat(b.free) : 0;
+}
+
+// Ordre au marché. side BUY → dépense quoteOrderQty (USDT). side SELL → vend quantity (base).
+export async function placeMarketOrder(
+  apiKey: string, secret: string, testnet: boolean,
+  symbol: string, side: "BUY" | "SELL", opts: { quoteOrderQty?: number; quantity?: number }
+) {
+  const params: Record<string, string | number> = { symbol, side, type: "MARKET" };
+  if (side === "BUY" && opts.quoteOrderQty) params.quoteOrderQty = opts.quoteOrderQty;
+  if (side === "SELL" && opts.quantity) params.quantity = opts.quantity;
+  return binanceSigned(apiKey, secret, testnet, "POST", "/api/v3/order", params);
+}
