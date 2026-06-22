@@ -40,6 +40,18 @@ function RegisterForm() {
       plan: isFounder ? "elite" : plan, loggedIn: false,
     }));
 
+    // Enregistrer le compte dans la base de données Supabase
+    try {
+      await fetch("/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email, full_name: `${fname} ${lname}`.trim(),
+          phone: dial.split(" ")[0] + phone, plan,
+        }),
+      });
+    } catch { /* on continue même si l'enregistrement échoue */ }
+
     // Fondateur → accès gratuit, on passe directement à la connexion 2FA
     if (isFounder) {
       router.push("/login");
