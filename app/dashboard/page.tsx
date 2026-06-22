@@ -96,24 +96,25 @@ export default function DashboardPage() {
           )}
           <div style={{ fontSize:".65rem", fontWeight:700, color:"var(--red)", letterSpacing:".1em" }}>BOT #{avatar+1}</div>
           <div style={{ fontSize:".55rem", color:"var(--muted)", marginTop:2 }}>Mode {mode} • {botOn?"En ligne":"En pause"}</div>
-          {/* Toggle */}
-          <Tooltip text={botOn ? "Le bot est ACTIF : il analyse le marché et ouvre/ferme des positions automatiquement. Cliquez pour le mettre en pause." : "Le bot est EN PAUSE : il ne prend aucune nouvelle position. Cliquez pour le réactiver."}>
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, marginTop:9, cursor:"pointer" }}>
-              <div onClick={()=>setBotOn(!botOn)} style={{ width:34, height:17, borderRadius:9, background:botOn?"rgba(39,174,96,0.3)":"rgba(192,57,43,0.2)", border:`1px solid ${botOn?"rgba(39,174,96,0.4)":"rgba(192,57,43,0.3)"}`, position:"relative", cursor:"pointer", transition:"all .2s" }}>
-                <div style={{ width:11, height:11, borderRadius:"50%", background:botOn?"var(--green)":"var(--red)", position:"absolute", top:2, left:botOn?20:2, transition:"left .2s" }}/>
+          {/* Boutons Actif + Démo/Réel — pastilles symétriques */}
+          <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:7, marginTop:11 }}>
+            <Tooltip text={botOn ? "Le bot est ACTIF : il analyse le marché et ouvre/ferme des positions automatiquement. Cliquez pour le mettre en pause." : "Le bot est EN PAUSE : il ne prend aucune nouvelle position. Cliquez pour le réactiver."}>
+              <div onClick={()=>setBotOn(!botOn)} style={{ width:138, boxSizing:"border-box", display:"flex", alignItems:"center", justifyContent:"center", gap:8, padding:"5px 10px", borderRadius:20, cursor:"pointer", border:`1px solid ${botOn?"rgba(39,174,96,0.5)":"rgba(192,57,43,0.4)"}`, background:botOn?"rgba(39,174,96,0.12)":"rgba(192,57,43,0.1)" }}>
+                <div style={{ width:30, height:15, borderRadius:8, background:botOn?"rgba(39,174,96,0.3)":"rgba(192,57,43,0.2)", position:"relative", flexShrink:0 }}>
+                  <div style={{ width:10, height:10, borderRadius:"50%", background:botOn?"var(--green)":"var(--red)", position:"absolute", top:2, left:botOn?18:2, transition:"left .2s" }}/>
+                </div>
+                <span style={{ fontSize:".56rem", fontWeight:700, color:botOn?"var(--green)":"var(--red)", letterSpacing:".06em" }}>{botOn?"ACTIF":"PAUSE"}</span>
               </div>
-              <span style={{ fontSize:".58rem", color:botOn?"var(--green)":"var(--red)", fontWeight:700 }}>{botOn?"Actif":"Pause"}</span>
-            </div>
-          </Tooltip>
-          {/* Bascule Démo / Réel */}
-          <Tooltip text={env==="demo" ? "Mode DÉMO : argent fictif, idéal pour tester les bots sans risque. Cliquez pour passer en RÉEL." : "Mode RÉEL : trades sur votre compte/wallet connecté avec de l'argent réel. Cliquez pour revenir en DÉMO."}>
-            <div onClick={toggleEnv} style={{ display:"inline-flex", alignItems:"center", gap:6, marginTop:9, padding:"4px 10px", borderRadius:20, cursor:"pointer", border:`1px solid ${env==="demo"?"rgba(251,191,36,0.5)":"rgba(39,174,96,0.5)"}`, background:env==="demo"?"rgba(251,191,36,0.1)":"rgba(39,174,96,0.12)" }}>
-              <span style={{ width:7, height:7, borderRadius:"50%", background:env==="demo"?"#fbbf24":"var(--green)" }}/>
-              <span style={{ fontSize:".56rem", fontWeight:700, color:env==="demo"?"#fbbf24":"var(--green)", letterSpacing:".06em" }}>{env==="demo"?"DÉMO (fictif)":"RÉEL"}</span>
-              <span style={{ fontSize:".5rem", color:"var(--muted)" }}>↔</span>
-            </div>
-          </Tooltip>
-          {isFounder && <div style={{ display:"inline-block", marginTop:8, fontSize:".52rem", background:"rgba(192,57,43,0.1)", border:"1px solid rgba(192,57,43,0.3)", borderRadius:20, padding:"3px 10px", color:"var(--red)", fontWeight:700, letterSpacing:".08em" }}>👑 FONDATEUR</div>}
+            </Tooltip>
+            <Tooltip text={env==="demo" ? "Mode DÉMO : argent fictif, idéal pour tester les bots sans risque. Cliquez pour passer en RÉEL." : "Mode RÉEL : trades sur votre compte/wallet connecté avec de l'argent réel. Cliquez pour revenir en DÉMO."}>
+              <div onClick={toggleEnv} style={{ width:138, boxSizing:"border-box", display:"flex", alignItems:"center", justifyContent:"center", gap:7, padding:"5px 10px", borderRadius:20, cursor:"pointer", border:`1px solid ${env==="demo"?"rgba(251,191,36,0.5)":"rgba(39,174,96,0.5)"}`, background:env==="demo"?"rgba(251,191,36,0.1)":"rgba(39,174,96,0.12)" }}>
+                <span style={{ width:8, height:8, borderRadius:"50%", background:env==="demo"?"#fbbf24":"var(--green)", flexShrink:0 }}/>
+                <span style={{ fontSize:".56rem", fontWeight:700, color:env==="demo"?"#fbbf24":"var(--green)", letterSpacing:".06em" }}>{env==="demo"?"DÉMO":"RÉEL"}</span>
+                <span style={{ fontSize:".5rem", color:"var(--muted)" }}>↔</span>
+              </div>
+            </Tooltip>
+            {isFounder && <div style={{ fontSize:".52rem", background:"rgba(192,57,43,0.1)", border:"1px solid rgba(192,57,43,0.3)", borderRadius:20, padding:"3px 10px", color:"var(--red)", fontWeight:700, letterSpacing:".08em" }}>👑 FONDATEUR</div>}
+          </div>
         </div>
 
         {/* Nav */}
@@ -165,7 +166,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Grid */}
-        <div className="dash-grid" style={{ display:"grid", gridTemplateColumns:"1fr 300px", gap:8, padding:"0 16px 10px", height:440, flexShrink:0, minHeight:0 }}>
+        <div className="dash-grid" style={{ display:"grid", gridTemplateColumns:"1fr 320px", gap:8, padding:"0 16px 10px", height:560, flexShrink:0, minHeight:0 }}>
 
           <div className="dash-col" style={{ display:"flex", flexDirection:"column", gap:8, minHeight:0, overflow:"hidden" }}>
             {/* Chart */}
@@ -221,7 +222,7 @@ export default function DashboardPage() {
             </div>
 
             {/* News */}
-            <div className="panel-3d panel-news" style={{ background:"rgba(6,13,46,0.55)", border:"1px solid rgba(10,26,92,0.6)", borderRadius:10, overflow:"hidden", flex:1, display:"flex", flexDirection:"column" }}>
+            <div className="panel-3d panel-news" style={{ background:"rgba(6,13,46,0.55)", border:"1px solid rgba(10,26,92,0.6)", borderRadius:10, overflow:"hidden", flex:1, minHeight:240, display:"flex", flexDirection:"column" }}>
               <div style={{ padding:"9px 12px", borderBottom:"1px solid rgba(10,26,92,0.6)", flexShrink:0 }}>
                 <span style={{ fontSize:".64rem", fontWeight:700, color:"white", textTransform:"uppercase", letterSpacing:".08em" }}>📰 Actualités IA</span>
               </div>

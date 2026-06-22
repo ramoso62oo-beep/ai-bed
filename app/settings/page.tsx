@@ -3,8 +3,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
-
-const LANGS = [["fr","🇫🇷 Français"],["en","🇬🇧 English"],["es","🇪🇸 Español"],["ar","🇸🇦 العربية"]];
+import { useT, LANGS } from "../components/i18n";
 const AVATARS = ["🐂","🦅","🐉","🦁","🐺","🦊","🤖","👾","🎯","💀","🌙","⚡","🔥","💎","🚀","🌊","🎭","🏆","👑","⚔️"];
 const PLANS = [
   { id:"starter", label:"Starter", price:"9,90 €", feats:"1 bot · trading de base" },
@@ -14,8 +13,8 @@ const PLANS = [
 
 export default function SettingsPage() {
   const router = useRouter();
+  const { lang, setLang } = useT();
   const [user, setUser] = useState<{email?:string;role?:string;plan?:string}>({});
-  const [lang, setLang] = useState("fr");
   const [avatar, setAvatar] = useState(0);
   const [pseudo, setPseudo] = useState("");
   const [photo, setPhoto] = useState("");
@@ -27,7 +26,6 @@ export default function SettingsPage() {
     let u: {email?:string;role?:string;plan?:string} = {};
     try { u = JSON.parse(localStorage.getItem("aibed_user")||"{}"); } catch {}
     setUser(u);
-    setLang(localStorage.getItem("aibed_lang")||"fr");
     setAvatar(Number(localStorage.getItem("aibed_avatar")||0));
     setPseudo(localStorage.getItem("aibed_pseudo")||"");
     setPhoto(localStorage.getItem("aibed_photo")||"");

@@ -184,10 +184,6 @@ export default function LoginPage() {
             <div style={s.title}>Vérification 2FA</div>
             <div style={s.sub}>Code envoyé par SMS</div>
 
-            {isFounder && (
-              <div style={s.founder}>👑 COMPTE FONDATEUR — Accès Elite gratuit</div>
-            )}
-
             <div style={s.info}>
               Code à 6 chiffres envoyé au numéro associé à<br/>
               <strong style={{ color:"var(--blue)" }}>{email}</strong>

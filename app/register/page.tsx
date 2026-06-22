@@ -122,12 +122,6 @@ function RegisterForm() {
             ))}
           </div>
 
-          {isFounder && (
-            <div style={{ background:"linear-gradient(135deg,rgba(192,57,43,0.2),rgba(192,57,43,0.05))", border:"1px solid rgba(192,57,43,0.4)", borderRadius:8, padding:"9px 12px", textAlign:"center", marginBottom:14, fontSize:".66rem", color:"var(--red)", fontWeight:700, letterSpacing:".08em" }}>
-              👑 FONDATEUR — Compte Elite GRATUIT
-            </div>
-          )}
-
           {error && <div style={{ background:"rgba(192,57,43,0.1)", border:"1px solid rgba(192,57,43,0.3)", borderRadius:6, padding:"7px 12px", fontSize:".66rem", color:"var(--red)", marginBottom:12, textAlign:"center" }}>{error}</div>}
 
           <form onSubmit={handleSubmit}>
@@ -153,8 +147,8 @@ function RegisterForm() {
               <div><label style={lbl}>Mot de passe</label><input style={inp} type="password" value={pass} onChange={e=>setPass(e.target.value)} placeholder="••••••••" minLength={8} required /></div>
               <div><label style={lbl}>Confirmer</label><input style={inp} type="password" value={pass2} onChange={e=>setPass2(e.target.value)} placeholder="••••••••" required /></div>
             </div>
-            <button type="submit" disabled={loading} style={{ width:"100%", padding:13, borderRadius:8, background: isFounder ? "linear-gradient(135deg,#8b0000,var(--red))" : "var(--red)", color:"white", border:"none", fontSize:".8rem", fontWeight:700, letterSpacing:".1em", cursor:"pointer", boxShadow:"0 0 20px var(--red-glow)" }}>
-              {loading ? "⏳ Redirection vers le paiement..." : isFounder ? "👑 Créer mon compte Fondateur (GRATUIT)" : `Payer ${PLANS.find(p=>p.id===plan)?.price}€/mois et continuer →`}
+            <button type="submit" disabled={loading} style={{ width:"100%", padding:13, borderRadius:8, background:"var(--red)", color:"white", border:"none", fontSize:".8rem", fontWeight:700, letterSpacing:".1em", cursor:"pointer", boxShadow:"0 0 20px var(--red-glow)" }}>
+              {loading ? "⏳ Redirection vers le paiement..." : isFounder ? "Créer mon compte →" : `Payer ${PLANS.find(p=>p.id===plan)?.price}€/mois et continuer →`}
             </button>
           </form>
 
