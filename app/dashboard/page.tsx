@@ -119,13 +119,13 @@ export default function DashboardPage() {
 
         {/* Nav */}
         <div style={{ padding:"6px 0", flex:1 }}>
-          {[["📊","Dashboard","/dashboard",true],["🤖","Mes bots","/mes-bots",false],["🌍","Marché","/marche",false],["🔌","Connexions","/connexions",false],["📈","Positions","/positions",false],["🐋","Whale Tracker","/whale-tracker",false],["⚡","Signaux IA","/signaux",false]].map(([ic,lb,href,act])=>(
+          {[["📊","Dashboard","/dashboard",true],["🤖","Mes bots","/mes-bots",false],["🌍","Marché","/marche",false],["🔄","Swap","/swap",false],["🔌","Connexions","/connexions",false],["📈","Positions","/positions",false],["🐋","Whale Tracker","/whale-tracker",false],["⚡","Signaux IA","/signaux",false]].map(([ic,lb,href,act])=>(
             <Link key={String(lb)} href={String(href)} style={{ ...sb, textDecoration:"none", color:act?"white":"var(--muted)", borderLeftColor:act?"var(--red)":"transparent", background:act?"rgba(192,57,43,0.06)":"transparent" }}>
               <span>{ic}</span><span>{lb}</span>
             </Link>
           ))}
           <div style={{ padding:"6px 14px 4px", fontSize:".5rem", color:"#1a3a6e", textTransform:"uppercase", letterSpacing:".18em", marginTop:8 }}>Compte</div>
-          {[["💼","Portefeuille","/portefeuille"],["📰","Actualités","/actualites"],["💬","Contact","/contact"],["⚙️","Paramètres","/settings"]].map(([ic,lb,href])=>(
+          {[["💼","Portefeuille","/portefeuille"],["📰","Actualités","/actualites"],["🎙️","Experts","/experts"],["💬","Contact","/contact"],["⚙️","Paramètres","/settings"]].map(([ic,lb,href])=>(
             <Link key={String(lb)} href={String(href)} style={{ ...sb, textDecoration:"none" }}><span>{ic}</span><span>{lb}</span></Link>
           ))}
           <Link href="/" style={{ ...sb, marginTop:4, textDecoration:"none" }}><span>🚪</span><span>Déconnexion</span></Link>

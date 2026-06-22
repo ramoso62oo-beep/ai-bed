@@ -8,6 +8,7 @@ const NAV: [string,string,string][] = [
   ["📊","dashboard","/dashboard"],
   ["🤖","mybots","/mes-bots"],
   ["🌍","market","/marche"],
+  ["🔄","swap","/swap"],
   ["🔌","connections","/connexions"],
   ["📈","positions","/positions"],
   ["🐋","whales","/whale-tracker"],
@@ -16,6 +17,7 @@ const NAV: [string,string,string][] = [
 const ACCOUNT: [string,string,string][] = [
   ["💼","wallet","/portefeuille"],
   ["📰","news","/actualites"],
+  ["🎙️","experts","/experts"],
   ["💬","contact","/contact"],
   ["⚙️","settings","/settings"],
 ];
