@@ -69,3 +69,32 @@ body {
   border: 1px solid var(--border);
   border-radius: 12px;
 }
+
+/* ===== Effets 3D ===== */
+@keyframes float3d {
+  0%, 100% { transform: translateY(0) rotateZ(0); }
+  50%       { transform: translateY(-6px) rotateZ(0.5deg); }
+}
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 16px var(--red-glow); }
+  50%       { box-shadow: 0 0 28px rgba(192,57,43,0.6); }
+}
+
+/* Relief au survol pour cartes/panneaux */
+.lift-3d { transition: transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s, border-color .25s; transform-style: preserve-3d; }
+.lift-3d:hover {
+  transform: perspective(700px) translateY(-4px) rotateX(3deg) scale(1.012);
+  box-shadow: 0 14px 38px rgba(0,0,0,0.5), 0 0 24px rgba(192,57,43,0.18);
+  border-color: rgba(192,57,43,0.35) !important;
+}
+
+/* Boutons : enfoncement 3D */
+button { transition: transform .12s, box-shadow .12s, filter .15s; }
+button:hover { filter: brightness(1.1); }
+button:active { transform: translateY(1px) scale(0.985); }
+
+/* Avatar flottant */
+.float-3d { animation: float3d 4s ease-in-out infinite; }
+
+/* Grille avec perspective de profondeur */
+.cyber-grid { transform: perspective(600px) rotateX(34deg) scale(1.6); transform-origin: center 30%; opacity: 0.5; }

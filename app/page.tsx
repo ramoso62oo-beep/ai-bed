@@ -171,7 +171,7 @@ export default function Home() {
           <p style={{ fontSize:".72rem", color:"var(--muted)", textAlign:"center", marginBottom:32 }}>Une plateforme complète pour trader comme un professionnel</p>
           <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))", gap:10 }}>
             {FEATURES.map(f=>(
-              <div key={f.title} className="card" style={{ padding:18, display:"flex", gap:12 }}>
+              <div key={f.title} className="card lift-3d" style={{ padding:18, display:"flex", gap:12 }}>
                 <span style={{ fontSize:"1.3rem" }}>{f.icon}</span>
                 <div>
                   <div style={{ fontSize:".75rem", fontWeight:700, color:"white", marginBottom:3 }}>{f.title}</div>
@@ -206,7 +206,7 @@ export default function Home() {
           <h2 style={{ fontFamily:"Orbitron,monospace", fontSize:"1rem", fontWeight:700, color:"white", textAlign:"center", letterSpacing:".12em", marginBottom:36 }}>Choisissez votre plan</h2>
           <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))", gap:14 }}>
             {PLANS.map(p=>(
-              <div key={p.name} className="card" style={{ padding:26, textAlign:"center", position:"relative", border:p.popular?`1px solid ${p.color}`:undefined, boxShadow:p.popular?"0 0 30px rgba(192,57,43,0.15)":undefined }}>
+              <div key={p.name} className="card lift-3d" style={{ padding:26, textAlign:"center", position:"relative", border:p.popular?`1px solid ${p.color}`:undefined, boxShadow:p.popular?"0 0 30px rgba(192,57,43,0.15)":undefined }}>
                 {p.popular && <div style={{ position:"absolute", top:-11, left:"50%", transform:"translateX(-50%)", background:p.color, color:"white", fontSize:".52rem", fontWeight:700, letterSpacing:".15em", padding:"3px 12px", borderRadius:10 }}>POPULAIRE</div>}
                 <div style={{ fontFamily:"Orbitron,monospace", fontSize:".75rem", fontWeight:700, color:p.color, letterSpacing:".15em", marginBottom:10 }}>{p.name}</div>
                 <div style={{ fontSize:"2rem", fontWeight:900, color:"white", marginBottom:4 }}>{p.price}<span style={{ fontSize:".7rem", color:"var(--muted)", fontWeight:400 }}>€/mois</span></div>

@@ -7,6 +7,7 @@ import CandleChart from "../components/CandleChart";
 import Tooltip from "../components/Tooltip";
 import WhaleFeed from "../components/WhaleFeed";
 import NewsFeed from "../components/NewsFeed";
+import Tilt3D from "../components/Tilt3D";
 
 const POSITIONS = [
   { sym:"BTCUSDT",    side:"LONG",  mode:"PATIENT",   entry:64125, current:64310, pnl:+0.29, sl:63612, tp:65279 },
@@ -54,11 +55,11 @@ export default function DashboardPage() {
   const isFounder = user.role === "founder";
   const sb: React.CSSProperties = { display:"flex", alignItems:"center", gap:10, padding:"9px 14px", fontSize:".7rem", color:"var(--muted)", cursor:"pointer", borderLeft:"2px solid transparent", textDecoration:"none", transition:"all .2s" };
   const kpi = (label: string, val: string, sub: string, color: string) => (
-    <div style={{ background:"rgba(6,13,46,0.6)", border:"1px solid rgba(10,26,92,0.6)", borderRadius:10, padding:"11px 13px" }}>
+    <Tilt3D style={{ background:"rgba(6,13,46,0.6)", border:"1px solid rgba(10,26,92,0.6)", borderRadius:10, padding:"11px 13px" }}>
       <div style={{ fontSize:".56rem", color:"var(--muted)", textTransform:"uppercase", letterSpacing:".08em", marginBottom:3 }}>{label}</div>
       <div style={{ fontSize:"1.05rem", fontWeight:700, color, fontVariantNumeric:"tabular-nums" }}>{val}</div>
       <div style={{ fontSize:".56rem", color:"var(--muted)", marginTop:2 }}>{sub}</div>
-    </div>
+    </Tilt3D>
   );
 
   return (
@@ -68,8 +69,7 @@ export default function DashboardPage() {
       <aside style={{ background:"rgba(6,13,46,0.95)", backdropFilter:"blur(20px)", borderRight:"1px solid rgba(10,26,92,0.6)", display:"flex", flexDirection:"column", paddingTop:56, overflow:"hidden" }}>
         {/* Bot */}
         <div style={{ padding:"16px 14px", borderBottom:"1px solid rgba(10,26,92,0.6)", textAlign:"center" }}>
-          <div onClick={() => setShowAvatarPicker(!showAvatarPicker)} style={{ width:56, height:56, borderRadius:"50%", background:"rgba(10,26,92,0.4)", border:"2px solid var(--red)", margin:"0 auto 7px", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"1.6rem", cursor:"pointer", boxShadow:"0 0 16px var(--red-glow)", transition:"transform .2s" }}
-            onMouseEnter={e=>(e.currentTarget.style.transform="scale(1.08)")} onMouseLeave={e=>(e.currentTarget.style.transform="")}>
+          <div className="float-3d" onClick={() => setShowAvatarPicker(!showAvatarPicker)} style={{ width:56, height:56, borderRadius:"50%", background:"rgba(10,26,92,0.4)", border:"2px solid var(--red)", margin:"0 auto 7px", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"1.6rem", cursor:"pointer", boxShadow:"0 0 16px var(--red-glow)" }}>
             {AVATARS[avatar]}
           </div>
           {showAvatarPicker && (

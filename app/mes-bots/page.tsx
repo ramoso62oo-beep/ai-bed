@@ -52,7 +52,7 @@ export default function MesBotsPage() {
         </div>
         <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(240px,1fr))", gap:16 }}>
           {bots.map(b=>(
-            <div key={b.id} style={card}>
+            <div key={b.id} className="lift-3d" style={card}>
               <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:14 }}>
                 <div style={{ width:48, height:48, borderRadius:"50%", background:"rgba(10,26,92,0.4)", border:`2px solid ${MODE_COLOR[b.mode]}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:"1.4rem" }}>{b.avatar}</div>
                 <div style={{ flex:1 }}><div style={{ fontSize:".85rem", fontWeight:700, color:"white" }}>{b.name}</div><div style={{ fontSize:".62rem", color:MODE_COLOR[b.mode], fontWeight:600 }}>Mode {b.mode}</div></div>
