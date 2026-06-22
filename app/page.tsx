@@ -237,6 +237,15 @@ export default function Home() {
               <span key={b} style={{ fontSize:".58rem", padding:"3px 10px", border:"1px solid var(--border)", borderRadius:20, color:"var(--muted)" }}>{b}</span>
             ))}
           </div>
+          <div style={{ display:"flex", gap:16, justifyContent:"center", marginBottom:12, flexWrap:"wrap" }}>
+            <Link href="/legal" style={{ fontSize:".62rem", color:"var(--muted2)", textDecoration:"none" }}>Mentions légales</Link>
+            <Link href="/legal" style={{ fontSize:".62rem", color:"var(--muted2)", textDecoration:"none" }}>CGU/CGV</Link>
+            <Link href="/legal" style={{ fontSize:".62rem", color:"var(--muted2)", textDecoration:"none" }}>Confidentialité</Link>
+            <Link href="/legal" style={{ fontSize:".62rem", color:"var(--red)", textDecoration:"none" }}>⚠️ Risques</Link>
+          </div>
+          <p style={{ fontSize:".58rem", color:"var(--muted)", maxWidth:560, margin:"0 auto 10px", lineHeight:1.5 }}>
+            ⚠️ Le trading de crypto-actifs comporte un risque élevé de perte en capital. Les performances passées ne préjugent pas des résultats futurs. AI-BED ne fournit pas de conseil en investissement et ne garantit aucun gain.
+          </p>
           <p style={{ fontSize:".6rem", color:"var(--muted)" }}>© 2026 AI-BED — Tous droits réservés</p>
         </footer>
       </main>

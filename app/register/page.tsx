@@ -159,7 +159,7 @@ function RegisterForm() {
           </form>
 
           <div style={{ fontSize:".58rem", color:"var(--muted)", textAlign:"center", marginTop:12, lineHeight:1.6 }}>
-            En vous inscrivant, vous acceptez nos <a href="#" style={{ color:"var(--red)", textDecoration:"none" }}>CGU</a> et notre <a href="#" style={{ color:"var(--red)", textDecoration:"none" }}>Politique de confidentialité</a>. Paiement sécurisé par Stripe.
+            En vous inscrivant, vous acceptez nos <Link href="/legal" style={{ color:"var(--red)", textDecoration:"none" }}>CGU</Link> et notre <Link href="/legal" style={{ color:"var(--red)", textDecoration:"none" }}>Politique de confidentialité</Link>. ⚠️ Le trading comporte des risques de perte. Paiement sécurisé par Stripe.
           </div>
           <div style={{ textAlign:"center", marginTop:14, fontSize:".68rem", color:"var(--muted)" }}>
             Déjà un compte ? <Link href="/login" style={{ color:"var(--red)", textDecoration:"none", fontWeight:600 }}>Se connecter</Link>
