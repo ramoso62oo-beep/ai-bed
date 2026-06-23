@@ -62,20 +62,30 @@ export default function DashboardPage() {
     setEnv(next); localStorage.setItem("aibed_env", next);
   }
 
+  // Email fiable (state ou localStorage)
+  function currentEmail(): string {
+    if (user.email) return user.email;
+    try { return JSON.parse(localStorage.getItem("aibed_user")||"{}").email || ""; } catch { return ""; }
+  }
+
   // Charge l'état réel du bot (auto activé ?) et synchronise la pastille ACTIF/PAUSE
   useEffect(() => {
-    if (!user.email) return;
-    fetch(`/api/bot/config?email=${encodeURIComponent(user.email)}`).then(r=>r.json()).then(d=>{
+    const email = currentEmail();
+    if (!email) return;
+    fetch(`/api/bot/config?email=${encodeURIComponent(email)}`).then(r=>r.json()).then(d=>{
       if (d.config) setBotOn(!!d.config.bot_auto);
     }).catch(()=>{});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user.email]);
 
   async function toggleBot() {
+    const email = currentEmail();
     const next = !botOn;
     setBotOn(next);
-    if (user.email) {
-      await fetch("/api/bot/config", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ email:user.email, bot_auto: next }) }).catch(()=>{});
-    }
+    if (!email) { return; }
+    try {
+      await fetch("/api/bot/config", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ email, bot_auto: next }) });
+    } catch { setBotOn(!next); } // rollback si échec réseau
   }
 
   const isFounder = user.role === "founder";
