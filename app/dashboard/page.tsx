@@ -32,6 +32,7 @@ export default function DashboardPage() {
   const [posList, setPosList] = useState(POSITIONS);
   const [navOpen, setNavOpen] = useState(false);
   const [env, setEnv] = useState<"demo"|"real">("demo");
+  const botInteracted = useRef(false);
   const access = useAccess();
   const [avatar, setAvatar] = useState(0);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
@@ -68,17 +69,19 @@ export default function DashboardPage() {
     try { return JSON.parse(localStorage.getItem("aibed_user")||"{}").email || ""; } catch { return ""; }
   }
 
-  // Charge l'état réel du bot (auto activé ?) et synchronise la pastille ACTIF/PAUSE
+  // Charge l'état réel du bot — sauf si l'utilisateur a déjà interagi (évite que
+  // une requête lente n'écrase le clic de l'utilisateur).
   useEffect(() => {
     const email = currentEmail();
     if (!email) return;
     fetch(`/api/bot/config?email=${encodeURIComponent(email)}`).then(r=>r.json()).then(d=>{
-      if (d.config) setBotOn(!!d.config.bot_auto);
+      if (d.config && !botInteracted.current) setBotOn(!!d.config.bot_auto);
     }).catch(()=>{});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user.email]);
 
   async function toggleBot() {
+    botInteracted.current = true; // verrou : plus aucun rechargement ne pourra écraser
     const email = currentEmail();
     const next = !botOn;
     setBotOn(next);
