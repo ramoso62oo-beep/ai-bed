@@ -109,8 +109,10 @@ export default function DashboardPage() {
   }
 
   // Change le mode de risque du bot (PATIENT / ACTIF / AGRESSIF)
+  // → applique le mode à TOUTES les positions ouvertes + au bot
   async function changeMode(m: string) {
     setMode(m);
+    setPosList(list => list.map(p => ({ ...p, mode: m })));
     const email = currentEmail();
     if (!email) return;
     fetch("/api/bot/config", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ email, bot_mode: m.toLowerCase() }) }).catch(()=>{});

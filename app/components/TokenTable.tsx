@@ -1,133 +1,112 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import Image from "next/image";
 
 type Token = {
-  icon: string; sym: string; name: string; age: string;
-  price: number; mc: string; vol: string; liq: string; holders: number;
-  ch1h: number; ch24h: number;
-  lpBurned: boolean; mintRenounced: boolean; risk: "low" | "med" | "high";
-  spark: number[];
+  id:string; symbol:string; name:string; image:string; price:number; mc:number; rank:number; vol:number;
+  ch1h:number|null; ch24h:number|null; ch7d:number|null; spark:number[];
 };
-
-const BASE: Token[] = [
-  { icon:"🐂", sym:"AIBED", name:"AI-BED Token", age:"2j", price:0.0842, mc:"8.4M", vol:"1.2M", liq:"420K", holders:3120, ch1h:+2.1, ch24h:+18.4, lpBurned:true, mintRenounced:true, risk:"low", spark:[5,6,5.5,7,8,7.5,9,11] },
-  { icon:"🐸", sym:"PEPE2", name:"Pepe 2.0", age:"4h", price:0.0000132, mc:"2.1M", vol:"890K", liq:"180K", holders:1842, ch1h:+12.4, ch24h:+64.2, lpBurned:true, mintRenounced:true, risk:"low", spark:[3,4,3.5,5,6,8,7,10] },
-  { icon:"🚀", sym:"MOON", name:"MoonShot", age:"38min", price:0.00214, mc:"640K", vol:"410K", liq:"92K", holders:512, ch1h:+45.1, ch24h:+45.1, lpBurned:false, mintRenounced:true, risk:"med", spark:[2,3,2,4,3,6,5,9] },
-  { icon:"💎", sym:"GEM", name:"DiamondHands", age:"1j", price:1.284, mc:"12.8M", vol:"3.1M", liq:"1.1M", holders:8210, ch1h:-1.2, ch24h:+8.9, lpBurned:true, mintRenounced:true, risk:"low", spark:[8,7,9,8,10,9,11,10] },
-  { icon:"🔥", sym:"BURN", name:"BurnFi", age:"12min", price:0.0000841, mc:"210K", vol:"320K", liq:"38K", holders:198, ch1h:-22.4, ch24h:-22.4, lpBurned:false, mintRenounced:false, risk:"high", spark:[10,9,8,7,5,6,4,3] },
-  { icon:"⚡", sym:"VOLT", name:"VoltChain", age:"6h", price:0.0421, mc:"4.2M", vol:"1.8M", liq:"560K", holders:2940, ch1h:+5.6, ch24h:+31.2, lpBurned:true, mintRenounced:true, risk:"low", spark:[4,5,4.5,6,7,6.5,8,9] },
-  { icon:"🌊", sym:"WAVE", name:"WaveProtocol", age:"3j", price:0.612, mc:"18.4M", vol:"2.4M", liq:"2.1M", holders:11200, ch1h:+0.8, ch24h:-3.2, lpBurned:true, mintRenounced:true, risk:"low", spark:[9,10,9,8,9,8,7,8] },
-  { icon:"🎯", sym:"SNIPE", name:"SniperBot", age:"22min", price:0.00521, mc:"520K", vol:"680K", liq:"71K", holders:421, ch1h:+88.2, ch24h:+88.2, lpBurned:false, mintRenounced:true, risk:"med", spark:[2,2,3,4,5,7,9,12] },
+const TABS: [string,"crypto"|"meme",string][] = [
+  ["🔥 Trending","crypto","rank"],
+  ["📈 Gainers","crypto","gainers"],
+  ["🐸 Memecoins","meme","rank"],
 ];
-
-const TABS = ["🔥 Trending","🆕 Nouveaux","📈 Gainers"];
-const RISK = { low:{c:"#27ae60",l:"Sûr"}, med:{c:"#fbbf24",l:"Moyen"}, high:{c:"#c0392b",l:"Risqué"} };
+function fmt(n:number){ if(n==null)return"—"; if(n>=1e9)return(n/1e9).toFixed(2)+"Md"; if(n>=1e6)return(n/1e6).toFixed(1)+"M"; if(n>=1e3)return(n/1e3).toFixed(1)+"k"; return n.toLocaleString("fr-FR",{maximumFractionDigits:n<1?6:2}); }
+function fmtP(n:number){ if(n==null)return"—"; return n>=1?n.toLocaleString("fr-FR",{maximumFractionDigits:2}):n.toLocaleString("fr-FR",{maximumFractionDigits:8}); }
+function risk(rank:number){ if(!rank||rank>300)return{c:"#c0392b",l:"Risqué"}; if(rank>80)return{c:"#fbbf24",l:"Moyen"}; return{c:"#27ae60",l:"Sûr"}; }
 
 function Spark({ data, up }: { data:number[]; up:boolean }) {
-  const w=58, h=20, max=Math.max(...data), min=Math.min(...data), range=max-min||1;
-  const pts = data.map((v,i)=>`${(i/(data.length-1))*w},${h-((v-min)/range)*h}`).join(" ");
+  if(!data||data.length<2) return null;
+  const w=58,h=20,max=Math.max(...data),min=Math.min(...data),range=max-min||1;
+  const pts=data.map((v,i)=>`${(i/(data.length-1))*w},${h-((v-min)/range)*h}`).join(" ");
   return <svg width={w} height={h}><polyline points={pts} fill="none" stroke={up?"#27ae60":"#c0392b"} strokeWidth="1.5"/></svg>;
 }
 
 export default function TokenTable() {
   const [tab, setTab] = useState(0);
-  const [tokens, setTokens] = useState(BASE);
+  const [tokens, setTokens] = useState<Token[]>([]);
+  const [loading, setLoading] = useState(true);
   const [trade, setTrade] = useState<Token|null>(null);
-  const [assigned, setAssigned] = useState<string[]>([]);
-  const flash = useRef<Record<string,string>>({});
+  const [assigned, setAssigned] = useState<Record<string,string>>({});
 
-  // Mise à jour des prix en temps réel
-  useEffect(() => {
-    const id = setInterval(() => {
-      setTokens(prev => prev.map(t => {
-        const delta = (Math.random()-0.48) * t.price * 0.015;
-        const np = Math.max(t.price + delta, t.price*0.5);
-        flash.current[t.sym] = delta>=0 ? "#27ae60" : "#c0392b";
-        return { ...t, price:np, ch1h:+(t.ch1h + (Math.random()-0.5)*0.4).toFixed(1) };
-      }));
-    }, 1500);
-    return () => clearInterval(id);
-  }, []);
+  useEffect(()=>{ try{ setAssigned(JSON.parse(localStorage.getItem("aibed_assigned")||"{}")); }catch{} },[]);
 
-  let view = [...tokens];
-  if (tab===1) view.sort((a,b)=>parseAge(a.age)-parseAge(b.age));
-  if (tab===2) view.sort((a,b)=>b.ch24h-a.ch24h);
+  const load = useCallback(async (t:number)=>{
+    setLoading(true);
+    const [, type, sort] = TABS[t];
+    try {
+      const d = await fetch(`/api/market?type=${type}`).then(r=>r.json());
+      let coins: Token[] = d.coins || [];
+      if (sort==="gainers") coins = [...coins].sort((a,b)=>(b.ch24h||-999)-(a.ch24h||-999));
+      setTokens(coins.slice(0,40));
+    } catch { setTokens([]); }
+    setLoading(false);
+  },[]);
+  useEffect(()=>{ load(tab); const id=setInterval(()=>load(tab), 60000); return ()=>clearInterval(id); },[tab,load]);
 
-  const fmt = (p:number) => p<0.001 ? p.toExponential(2) : p.toLocaleString("fr-FR",{maximumFractionDigits:4});
+  function assign(t:Token, mode:string){
+    const next={...assigned,[t.id]:mode}; setAssigned(next); localStorage.setItem("aibed_assigned",JSON.stringify(next)); setTrade(null);
+  }
+  const chColor=(n:number|null)=> n==null?"var(--muted)":n>=0?"var(--green)":"var(--red)";
 
   return (
     <div style={{ background:"rgba(6,13,46,0.6)", backdropFilter:"blur(20px)", border:"1px solid rgba(10,26,92,0.6)", borderRadius:12, overflow:"hidden" }}>
-      {/* Header + tabs */}
-      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 18px", borderBottom:"1px solid rgba(10,26,92,0.5)" }}>
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 18px", borderBottom:"1px solid rgba(10,26,92,0.5)", flexWrap:"wrap", gap:8 }}>
         <div style={{ display:"flex", gap:6 }}>
-          {TABS.map((t,i)=>(
-            <button key={i} onClick={()=>setTab(i)} style={{ padding:"6px 13px", borderRadius:7, fontSize:".68rem", fontWeight:700, cursor:"pointer", border:"none",
-              background:tab===i?"rgba(192,57,43,0.15)":"transparent", color:tab===i?"var(--red)":"var(--muted2)" }}>{t}</button>
-          ))}
+          {TABS.map((t,i)=>(<button key={i} onClick={()=>setTab(i)} style={{ padding:"6px 13px", borderRadius:7, fontSize:".68rem", fontWeight:700, cursor:"pointer", border:"none", background:tab===i?"rgba(192,57,43,0.15)":"transparent", color:tab===i?"var(--red)":"var(--muted2)" }}>{t[0]}</button>))}
         </div>
-        <span style={{ display:"flex", alignItems:"center", gap:6, fontSize:".6rem", color:"var(--muted)" }}>
-          <span style={{ width:6, height:6, borderRadius:"50%", background:"var(--green)", animation:"pulse-red 1.5s infinite" }}/> Temps réel
-        </span>
+        <span style={{ display:"flex", alignItems:"center", gap:6, fontSize:".6rem", color:"var(--green)" }}><span style={{ width:6, height:6, borderRadius:"50%", background:"var(--green)", animation:"pulse-red 1.5s infinite" }}/>Données réelles</span>
       </div>
 
-      {/* Column headers */}
-      <div style={{ display:"grid", gridTemplateColumns:"1.8fr 1fr .9fr .9fr .8fr .7fr 1.1fr .7fr .7fr", padding:"9px 18px", fontSize:".56rem", color:"var(--muted)", textTransform:"uppercase", letterSpacing:".05em", borderBottom:"1px solid rgba(10,26,92,0.4)" }}>
-        <span>Token</span><span>Prix</span><span>MCap</span><span>Volume</span><span>Liq.</span><span>Holders</span><span>1h / 24h</span><span>Sécurité</span><span></span>
+      <div style={{ display:"grid", gridTemplateColumns:"1.8fr 1fr .7fr .8fr 1.1fr 1fr .7fr .7fr", padding:"9px 18px", fontSize:".56rem", color:"var(--muted)", textTransform:"uppercase", letterSpacing:".05em", borderBottom:"1px solid rgba(10,26,92,0.4)" }}>
+        <span>Token</span><span>Prix</span><span>1h</span><span>24h</span><span>7j</span><span>MCap</span><span>Sécurité</span><span></span>
       </div>
 
-      {/* Rows */}
-      {view.map((t)=>{
-        const fc = flash.current[t.sym];
-        return (
-          <div key={t.sym} className="token-row" style={{ display:"grid", gridTemplateColumns:"1.8fr 1fr .9fr .9fr .8fr .7fr 1.1fr .7fr .7fr", padding:"11px 18px", fontSize:".72rem", alignItems:"center", borderBottom:"1px solid rgba(10,26,92,0.22)" }}>
-            {/* Token */}
+      {loading && <div style={{ padding:"24px", textAlign:"center", color:"var(--muted)", fontSize:".76rem" }}>Chargement des données réelles…</div>}
+      {!loading && tokens.length===0 && <div style={{ padding:"24px", textAlign:"center", color:"var(--muted)", fontSize:".76rem" }}>Indisponible (limite CoinGecko). Réessayez dans 1 min.</div>}
+
+      <div style={{ maxHeight:430, overflowY:"auto" }}>
+        {!loading && tokens.map((t)=>{ const rk=risk(t.rank); return (
+          <div key={t.id} className="token-row" onClick={()=>setTrade(t)} style={{ display:"grid", gridTemplateColumns:"1.8fr 1fr .7fr .8fr 1.1fr 1fr .7fr .7fr", padding:"10px 18px", fontSize:".72rem", alignItems:"center", borderBottom:"1px solid rgba(10,26,92,0.22)", cursor:"pointer" }}>
             <div style={{ display:"flex", alignItems:"center", gap:9 }}>
-              <span style={{ fontSize:"1.1rem" }}>{t.icon}</span>
-              <div><div style={{ color:"white", fontWeight:600, lineHeight:1.1 }}>{t.sym}</div>
-                <div style={{ fontSize:".56rem", color:"var(--muted)" }}>{t.name} · {t.age}</div></div>
+              {t.image && <Image src={t.image} alt="" width={22} height={22} style={{ borderRadius:"50%" }} unoptimized />}
+              <div><div style={{ color:"white", fontWeight:600, lineHeight:1.1 }}>{t.symbol}</div>
+                <div style={{ fontSize:".56rem", color:"var(--muted)" }}>{t.name.length>15?t.name.slice(0,15)+"…":t.name}{assigned[t.id]&&<span style={{ marginLeft:5, color:"var(--green)" }}>🤖</span>}</div></div>
             </div>
-            <span style={{ color:fc||"white", fontWeight:600, transition:"color .3s" }}>${fmt(t.price)}</span>
-            <span style={{ color:"var(--muted2)" }}>${t.mc}</span>
-            <span style={{ color:"var(--muted2)" }}>${t.vol}</span>
-            <span style={{ color:"var(--muted2)" }}>${t.liq}</span>
-            <span style={{ color:"var(--muted2)" }}>{t.holders.toLocaleString("fr-FR")}</span>
-            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-              <Spark data={t.spark} up={t.ch24h>=0}/>
-              <span style={{ color:t.ch24h>=0?"var(--green)":"var(--red)", fontWeight:700, fontSize:".66rem" }}>{t.ch24h>=0?"+":""}{t.ch24h}%</span>
-            </div>
-            {/* Security */}
-            <div style={{ display:"flex", gap:4 }}>
-              <span title={t.lpBurned?"LP brûlée":"LP non brûlée"} style={{ fontSize:".7rem" }}>{t.lpBurned?"🔒":"⚠️"}</span>
-              <span title={t.mintRenounced?"Mint abandonné":"Mint actif"} style={{ fontSize:".7rem" }}>{t.mintRenounced?"✅":"❌"}</span>
-              <span style={{ fontSize:".52rem", padding:"1px 5px", borderRadius:5, background:`${RISK[t.risk].c}22`, color:RISK[t.risk].c, fontWeight:700, alignSelf:"center" }}>{RISK[t.risk].l}</span>
-            </div>
-            <button onClick={()=>setTrade(t)} style={{ padding:"5px 12px", borderRadius:6, background:assigned.includes(t.sym)?"rgba(39,174,96,0.2)":"var(--red)", border:"none", color:assigned.includes(t.sym)?"var(--green)":"white", fontSize:".62rem", fontWeight:700, cursor:"pointer", boxShadow:assigned.includes(t.sym)?"none":"0 0 10px var(--red-glow)" }}>{assigned.includes(t.sym)?"✓ Bot":"Trader"}</button>
+            <span style={{ color:"white", fontWeight:600 }}>${fmtP(t.price)}</span>
+            <span style={{ color:chColor(t.ch1h), fontSize:".64rem" }}>{t.ch1h!=null?(t.ch1h>=0?"+":"")+t.ch1h.toFixed(1)+"%":"—"}</span>
+            <span style={{ color:chColor(t.ch24h), fontWeight:700, fontSize:".66rem" }}>{t.ch24h!=null?(t.ch24h>=0?"+":"")+t.ch24h.toFixed(1)+"%":"—"}</span>
+            <div style={{ display:"flex", alignItems:"center", gap:6 }}><Spark data={t.spark} up={(t.ch7d||0)>=0}/><span style={{ color:chColor(t.ch7d), fontSize:".6rem" }}>{t.ch7d!=null?(t.ch7d>=0?"+":"")+t.ch7d.toFixed(0)+"%":""}</span></div>
+            <span style={{ color:"var(--muted2)" }}>${fmt(t.mc)}</span>
+            <span style={{ fontSize:".54rem", padding:"1px 6px", borderRadius:5, background:`${rk.c}22`, color:rk.c, fontWeight:700, justifySelf:"start" }}>{rk.l}</span>
+            <button onClick={e=>{e.stopPropagation();setTrade(t);}} style={{ padding:"5px 12px", borderRadius:6, background:assigned[t.id]?"rgba(39,174,96,0.2)":"var(--red)", border:"none", color:assigned[t.id]?"var(--green)":"white", fontSize:".62rem", fontWeight:700, cursor:"pointer" }}>{assigned[t.id]?"✓ Bot":"Trader"}</button>
           </div>
-        );
-      })}
+        );})}
+      </div>
 
       {trade && (
         <div onClick={()=>setTrade(null)} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.6)", zIndex:300, display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}>
           <div onClick={e=>e.stopPropagation()} style={{ background:"rgba(6,13,46,0.98)", border:"1px solid rgba(74,111,165,0.3)", borderRadius:14, padding:24, width:"100%", maxWidth:360 }}>
             <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
-              <span style={{ fontSize:"1.5rem" }}>{trade.icon}</span>
-              <div><div style={{ fontSize:".95rem", fontWeight:700, color:"white" }}>{trade.sym}</div><div style={{ fontSize:".62rem", color:"var(--muted)" }}>{trade.name}</div></div>
+              {trade.image && <Image src={trade.image} alt="" width={34} height={34} style={{ borderRadius:"50%" }} unoptimized />}
+              <div><div style={{ fontSize:".95rem", fontWeight:700, color:"white" }}>{trade.symbol}</div><div style={{ fontSize:".62rem", color:"var(--muted)" }}>{trade.name} · Rang #{trade.rank||"—"}</div></div>
             </div>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginBottom:16, fontSize:".68rem" }}>
-              <div style={{ background:"rgba(4,7,26,0.5)", borderRadius:7, padding:"8px 10px" }}><div style={{ color:"var(--muted)" }}>Prix</div><div style={{ color:"white", fontWeight:600 }}>${trade.price<0.001?trade.price.toExponential(2):trade.price}</div></div>
-              <div style={{ background:"rgba(4,7,26,0.5)", borderRadius:7, padding:"8px 10px" }}><div style={{ color:"var(--muted)" }}>24h</div><div style={{ color:trade.ch24h>=0?"var(--green)":"var(--red)", fontWeight:600 }}>{trade.ch24h>=0?"+":""}{trade.ch24h}%</div></div>
-              <div style={{ background:"rgba(4,7,26,0.5)", borderRadius:7, padding:"8px 10px" }}><div style={{ color:"var(--muted)" }}>MCap</div><div style={{ color:"white" }}>${trade.mc}</div></div>
-              <div style={{ background:"rgba(4,7,26,0.5)", borderRadius:7, padding:"8px 10px" }}><div style={{ color:"var(--muted)" }}>Sécurité</div><div style={{ color:RISK[trade.risk].c, fontWeight:600 }}>{RISK[trade.risk].l}</div></div>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginBottom:14, fontSize:".68rem" }}>
+              <div style={{ background:"rgba(4,7,26,0.5)", borderRadius:7, padding:"8px 10px" }}><div style={{ color:"var(--muted)" }}>Prix</div><div style={{ color:"white", fontWeight:600 }}>${fmtP(trade.price)}</div></div>
+              <div style={{ background:"rgba(4,7,26,0.5)", borderRadius:7, padding:"8px 10px" }}><div style={{ color:"var(--muted)" }}>24h</div><div style={{ color:chColor(trade.ch24h), fontWeight:600 }}>{trade.ch24h!=null?(trade.ch24h>=0?"+":"")+trade.ch24h.toFixed(1)+"%":"—"}</div></div>
+              <div style={{ background:"rgba(4,7,26,0.5)", borderRadius:7, padding:"8px 10px" }}><div style={{ color:"var(--muted)" }}>MCap</div><div style={{ color:"white" }}>${fmt(trade.mc)}</div></div>
+              <div style={{ background:"rgba(4,7,26,0.5)", borderRadius:7, padding:"8px 10px" }}><div style={{ color:"var(--muted)" }}>Volume</div><div style={{ color:"white" }}>${fmt(trade.vol)}</div></div>
             </div>
-            <button onClick={()=>{ setAssigned(a=>a.includes(trade.sym)?a:[...a,trade.sym]); setTrade(null); }} style={{ width:"100%", padding:12, borderRadius:8, background:"var(--red)", border:"none", color:"white", fontSize:".78rem", fontWeight:700, cursor:"pointer", boxShadow:"0 0 16px var(--red-glow)" }}>
-              🤖 Confier ce token à mon bot
-            </button>
-            <button onClick={()=>setTrade(null)} style={{ width:"100%", marginTop:9, padding:10, borderRadius:8, background:"transparent", border:"1px solid rgba(74,111,165,0.3)", color:"var(--muted2)", fontSize:".72rem", cursor:"pointer" }}>Fermer</button>
+            <div style={{ fontSize:".66rem", color:"var(--muted2)", marginBottom:8, fontWeight:600 }}>🤖 Confier {trade.symbol} à un bot :</div>
+            <div style={{ display:"grid", gap:7, marginBottom:10 }}>
+              {([["Patient","#4a90d9"],["Actif","#27ae60"],["Agressif","#c0392b"]] as [string,string][]).map(([lb,c])=>(
+                <button key={lb} onClick={()=>assign(trade,lb)} style={{ padding:"10px 14px", borderRadius:8, cursor:"pointer", border:`1px solid ${c}`, background:`${c}12`, color:c, fontWeight:700, fontSize:".74rem", textAlign:"left" }}>{lb}</button>
+              ))}
+            </div>
+            <button onClick={()=>setTrade(null)} style={{ width:"100%", padding:9, borderRadius:8, background:"transparent", border:"1px solid rgba(74,111,165,0.3)", color:"var(--muted2)", fontSize:".72rem", cursor:"pointer" }}>Fermer</button>
           </div>
         </div>
       )}
     </div>
   );
 }
-
-function parseAge(a:string){ if(a.includes("min"))return parseInt(a); if(a.includes("h"))return parseInt(a)*60; if(a.includes("j"))return parseInt(a)*1440; return 9999; }
