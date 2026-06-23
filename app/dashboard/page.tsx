@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import TokenTable from "../components/TokenTable";
-import CandleChart from "../components/CandleChart";
+import ProChart from "../components/ProChart";
 import Tooltip from "../components/Tooltip";
 import WhaleFeed from "../components/WhaleFeed";
 import NewsFeed from "../components/NewsFeed";
@@ -224,7 +224,7 @@ export default function DashboardPage() {
 
           <div className="dash-col" style={{ display:"flex", flexDirection:"column", gap:8, minHeight:0, overflow:"hidden" }}>
             {/* Chart */}
-            <CandleChart pair="BTC/USDT" />
+            <ProChart pair="BTC/USDT" />
 
             {/* Positions */}
             <div className="panel-pos" style={{ background:"rgba(6,13,46,0.55)", border:"1px solid rgba(10,26,92,0.6)", borderRadius:10, flex:1, overflow:"hidden", display:"flex", flexDirection:"column" }}>

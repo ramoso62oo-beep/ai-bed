@@ -15,8 +15,10 @@ export async function GET(req: NextRequest) {
     const raw = await res.json();
     if (!Array.isArray(raw)) return NextResponse.json({ candles: [], error: raw?.msg || "indisponible" });
     const candles = raw.map((k: unknown[]) => ({
+      t: Math.floor((k[0] as number) / 1000),
       o: parseFloat(k[1] as string), h: parseFloat(k[2] as string),
       l: parseFloat(k[3] as string), c: parseFloat(k[4] as string),
+      v: parseFloat(k[5] as string),
     }));
     const price = candles.length ? candles[candles.length - 1].c : 0;
     return NextResponse.json({ candles, price });
