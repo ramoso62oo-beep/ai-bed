@@ -29,6 +29,7 @@ export default function DashboardPage() {
   const [botOn, setBotOn] = useState(true);
   const [mode, setMode] = useState("ACTIF");
   const [balance, setBalance] = useState(9808.43);
+  const [stats, setStats] = useState<{connected:boolean;testnet?:boolean;total?:number;usdt?:number;pnlPct?:number;pnlUsd?:number;inPosition?:boolean;botAuto?:boolean;symbol?:string}>({connected:false});
   const [posList, setPosList] = useState(POSITIONS);
   const [navOpen, setNavOpen] = useState(false);
   const [env, setEnv] = useState<"demo"|"real">("demo");
@@ -49,13 +50,23 @@ export default function DashboardPage() {
     }
   }, [session]);
 
-  // Mise à jour du solde en temps réel
+  // Stats RÉELLES depuis le compte connecté (rafraîchies toutes les 10 s)
   useEffect(() => {
-    const interval = setInterval(() => {
-      setBalance(b => parseFloat((b+(Math.random()-.49)*2).toFixed(2)));
-    }, 2000);
+    const email = currentEmail();
+    if (!email) return;
+    const load = () => fetch(`/api/dashboard/stats?email=${encodeURIComponent(email)}`).then(r=>r.json()).then(d=>setStats(d)).catch(()=>{});
+    load();
+    const id = setInterval(load, 10000);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user.email]);
+
+  // Fallback démo (compte non connecté) — léger mouvement pour l'aperçu
+  useEffect(() => {
+    if (stats.connected) return;
+    const interval = setInterval(() => setBalance(b => parseFloat((b+(Math.random()-.49)*2).toFixed(2))), 2500);
     return () => clearInterval(interval);
-  }, []);
+  }, [stats.connected]);
 
   useEffect(() => { setEnv((localStorage.getItem("aibed_env") as "demo"|"real") || "demo"); }, []);
   function toggleEnv() {
@@ -188,11 +199,19 @@ export default function DashboardPage() {
 
         {/* KPIs */}
         <div className="dash-kpis" style={{ display:"grid", gridTemplateColumns:"repeat(5,1fr)", gap:8, padding:"10px 16px", flexShrink:0 }}>
-          {kpi("Portefeuille", `${balance.toLocaleString("fr-FR",{maximumFractionDigits:2})} $`, `+${(balance-9808).toFixed(2)}$ vs départ`, "white")}
-          {kpi("PnL Aujourd'hui", "+4.23%", "+412 USDT", "var(--green)")}
-          {kpi("Positions actives", "4 / 10", "3 en profit", "var(--blue)")}
-          {kpi("Signaux Whale", "2", "Alerte PEPE & BTC", "#fbbf24")}
-          {kpi("Bot statut", botOn?"EN LIGNE":"EN PAUSE", "Depuis 4h32", botOn?"var(--green)":"var(--red)")}
+          {stats.connected ? <>
+            {kpi("Portefeuille"+(stats.testnet?" (testnet)":""), `${(stats.total||0).toLocaleString("fr-FR",{maximumFractionDigits:2})} $`, `${(stats.usdt||0).toLocaleString("fr-FR",{maximumFractionDigits:2})} USDT dispo`, "white")}
+            {kpi("PnL position", `${(stats.pnlPct||0)>=0?"+":""}${(stats.pnlPct||0).toFixed(2)}%`, `${(stats.pnlUsd||0)>=0?"+":""}${(stats.pnlUsd||0).toFixed(2)} USDT`, (stats.pnlPct||0)>=0?"var(--green)":"var(--red)")}
+            {kpi("Position ouverte", stats.inPosition?"1":"0", stats.inPosition?(stats.symbol||""):"En attente", "var(--blue)")}
+            {kpi("Source", "RÉEL", "Compte connecté", "var(--green)")}
+            {kpi("Bot statut", stats.botAuto?"EN LIGNE":"EN PAUSE", "Trading auto", stats.botAuto?"var(--green)":"var(--red)")}
+          </> : <>
+            {kpi("Portefeuille (démo)", `${balance.toLocaleString("fr-FR",{maximumFractionDigits:2})} $`, "Connectez Binance pour le réel", "white")}
+            {kpi("PnL (démo)", "+4.23%", "Illustratif", "var(--green)")}
+            {kpi("Positions (démo)", "4 / 10", "Illustratif", "var(--blue)")}
+            {kpi("Source", "DÉMO", "Données d'exemple", "#fbbf24")}
+            {kpi("Bot statut", botOn?"EN LIGNE":"EN PAUSE", "Trading auto", botOn?"var(--green)":"var(--red)")}
+          </>}
         </div>
 
         {/* Grid */}
