@@ -62,6 +62,22 @@ export default function DashboardPage() {
     setEnv(next); localStorage.setItem("aibed_env", next);
   }
 
+  // Charge l'état réel du bot (auto activé ?) et synchronise la pastille ACTIF/PAUSE
+  useEffect(() => {
+    if (!user.email) return;
+    fetch(`/api/bot/config?email=${encodeURIComponent(user.email)}`).then(r=>r.json()).then(d=>{
+      if (d.config) setBotOn(!!d.config.bot_auto);
+    }).catch(()=>{});
+  }, [user.email]);
+
+  async function toggleBot() {
+    const next = !botOn;
+    setBotOn(next);
+    if (user.email) {
+      await fetch("/api/bot/config", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ email:user.email, bot_auto: next }) }).catch(()=>{});
+    }
+  }
+
   const isFounder = user.role === "founder";
   const sb: React.CSSProperties = { display:"flex", alignItems:"center", gap:10, padding:"9px 14px", fontSize:".7rem", color:"var(--muted)", cursor:"pointer", borderLeft:"2px solid transparent", textDecoration:"none", transition:"all .2s" };
   const kpi = (label: string, val: string, sub: string, color: string) => (
@@ -98,8 +114,8 @@ export default function DashboardPage() {
           <div style={{ fontSize:".55rem", color:"var(--muted)", marginTop:2 }}>Mode {mode} • {botOn?"En ligne":"En pause"}</div>
           {/* Boutons Actif + Démo/Réel — pastilles symétriques */}
           <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:7, marginTop:11 }}>
-            <Tooltip text={botOn ? "Le bot est ACTIF : il analyse le marché et ouvre/ferme des positions automatiquement. Cliquez pour le mettre en pause." : "Le bot est EN PAUSE : il ne prend aucune nouvelle position. Cliquez pour le réactiver."}>
-              <div onClick={()=>setBotOn(!botOn)} style={{ width:138, boxSizing:"border-box", display:"flex", alignItems:"center", justifyContent:"center", gap:8, padding:"5px 10px", borderRadius:20, cursor:"pointer", border:`1px solid ${botOn?"rgba(39,174,96,0.5)":"rgba(192,57,43,0.4)"}`, background:botOn?"rgba(39,174,96,0.12)":"rgba(192,57,43,0.1)" }}>
+            <Tooltip text={botOn ? "Le bot est ACTIF : le trading automatique est lancé (il analyse le marché et passe des ordres). Cliquez pour le mettre en pause." : "Le bot est EN PAUSE : aucun trade automatique. Cliquez pour lancer le trading automatique."}>
+              <div onClick={toggleBot} style={{ width:138, boxSizing:"border-box", display:"flex", alignItems:"center", justifyContent:"center", gap:8, padding:"5px 10px", borderRadius:20, cursor:"pointer", border:`1px solid ${botOn?"rgba(39,174,96,0.5)":"rgba(192,57,43,0.4)"}`, background:botOn?"rgba(39,174,96,0.12)":"rgba(192,57,43,0.1)" }}>
                 <div style={{ width:30, height:15, borderRadius:8, background:botOn?"rgba(39,174,96,0.3)":"rgba(192,57,43,0.2)", position:"relative", flexShrink:0 }}>
                   <div style={{ width:10, height:10, borderRadius:"50%", background:botOn?"var(--green)":"var(--red)", position:"absolute", top:2, left:botOn?18:2, transition:"left .2s" }}/>
                 </div>
