@@ -37,14 +37,16 @@ export function computeSignal(closes: number[], mode = "actif"): { signal: Signa
   const r = rsi(closes);
   const bb = bollinger(closes);
   const price = closes[closes.length - 1];
+  // Patient = prudent (exige RSI + confirmation bande). Actif/Agressif = plus réactifs (RSI seul).
+  const strict = mode === "patient";
 
-  // Achat : survente (RSI bas) ET prix sous la bande basse
-  if (r <= p.rsiBuy && price <= bb.lower * 1.005) {
-    return { signal: "BUY", rsi: r, reason: `RSI ${r.toFixed(0)} (survente) + sous bande basse` };
+  // Achat : survente
+  if (r <= p.rsiBuy && (!strict || price <= bb.lower * 1.005)) {
+    return { signal: "BUY", rsi: r, reason: `RSI ${r.toFixed(0)} (survente)${strict ? " + sous bande basse" : ""}` };
   }
-  // Vente : surachat (RSI haut) ET prix au-dessus de la bande haute
-  if (r >= p.rsiSell && price >= bb.upper * 0.995) {
-    return { signal: "SELL", rsi: r, reason: `RSI ${r.toFixed(0)} (surachat) + au-dessus bande haute` };
+  // Vente : surachat
+  if (r >= p.rsiSell && (!strict || price >= bb.upper * 0.995)) {
+    return { signal: "SELL", rsi: r, reason: `RSI ${r.toFixed(0)} (surachat)${strict ? " + au-dessus bande haute" : ""}` };
   }
   return { signal: "HOLD", rsi: r, reason: `RSI ${r.toFixed(0)} — neutre` };
 }
