@@ -30,8 +30,13 @@ export default function SettingsPage() {
     setPseudo(localStorage.getItem("aibed_pseudo")||"");
     setPhoto(localStorage.getItem("aibed_photo")||"");
     if (u.email) fetch(`/api/profile?email=${encodeURIComponent(u.email)}`).then(r=>r.json()).then(d=>{
-      if (d.profile?.pseudo) setPseudo(d.profile.pseudo);
-      if (d.profile?.photo) setPhoto(d.profile.photo);
+      const p = d.profile || {};
+      if (p.pseudo) setPseudo(p.pseudo);
+      if (p.photo) setPhoto(p.photo);
+      // Vrai plan depuis la base (corrige l'affichage périmé)
+      const PAID = ["starter","pro","elite"];
+      const realPlan = p.role === "founder" ? "elite" : (p.subscription_status === "active" && PAID.includes(p.plan) ? p.plan : "none");
+      setUser(prev => ({ ...prev, plan: realPlan, role: p.role || prev.role }));
     }).catch(()=>{});
   }, []);
 
@@ -109,7 +114,7 @@ export default function SettingsPage() {
         <div style={card}>
           <div style={h}>Mon compte</div>
           <div style={row}><span style={{ color:"var(--muted2)" }}>Email</span><span style={{ color:"white" }}>{user.email||"—"}</span></div>
-          <div style={row}><span style={{ color:"var(--muted2)" }}>Plan</span><span style={{ color:"var(--red)", fontWeight:700, textTransform:"uppercase" }}>{user.plan||"—"}</span></div>
+          <div style={row}><span style={{ color:"var(--muted2)" }}>Plan</span><span style={{ color: (!user.plan||user.plan==="none")?"var(--muted2)":"var(--red)", fontWeight:700, textTransform:"uppercase" }}>{(!user.plan||user.plan==="none")?"Sans abonnement":user.plan}</span></div>
           <div style={{ ...row, borderBottom:"none" }}><span style={{ color:"var(--muted2)" }}>Statut</span>
             <span style={{ color: isFounder?"#fbbf24":"var(--green)", fontWeight:700 }}>{isFounder?"👑 FONDATEUR":"Membre actif"}</span>
           </div>

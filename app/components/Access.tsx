@@ -27,6 +27,20 @@ export function useAccess(): Access {
       }
     }
     setA({ ready:true, loggedIn: !!(u.loggedIn||u.email), plan:u.plan||"none", role:u.role||"", paid, founder });
+
+    // Rafraîchit le VRAI plan depuis la base (corrige tout localStorage périmé)
+    if (u.email && !founder) {
+      fetch(`/api/profile?email=${encodeURIComponent(u.email)}`).then(r=>r.json()).then(d=>{
+        const p = d.profile || {};
+        const realPaid = p.subscription_status === "active" && PAID.includes(p.plan);
+        const realPlan = realPaid ? p.plan : "none";
+        try {
+          const stored = JSON.parse(localStorage.getItem("aibed_user")||"{}");
+          if (stored.plan !== realPlan) { stored.plan = realPlan; localStorage.setItem("aibed_user", JSON.stringify(stored)); }
+        } catch {}
+        setA(prev => ({ ...prev, plan: realPlan, paid: realPaid }));
+      }).catch(()=>{});
+    }
   }, []);
   return a;
 }
