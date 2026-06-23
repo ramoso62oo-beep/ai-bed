@@ -47,14 +47,15 @@ export async function GET(req: NextRequest) {
         try {
           const order = await placeMarketOrder(apiKey, secret, testnet, symbol, "BUY", { quoteOrderQty: amount });
           const qty = parseFloat((order as { executedQty?: string }).executedQty || "0");
-          await supabaseAdmin.from("profiles").update({ bot_in_position: true, bot_qty: qty }).eq("email", email);
-          action = `✅ ACHAT ${qty} ${base} (${amount} USDT)`;
+          const spent = parseFloat((order as { cummulativeQuoteQty?: string }).cummulativeQuoteQty || String(amount));
+          await supabaseAdmin.from("profiles").update({ bot_in_position: true, bot_qty: qty, bot_entry_usd: spent }).eq("email", email);
+          action = `✅ ACHAT ${qty} ${base} (${spent.toFixed(2)} USDT)`;
         } catch (e) { action = "Échec achat"; detail = e instanceof Error ? e.message : ""; }
       } else if (signal === "SELL" && inPosition && heldQty > 0) {
         try {
           const qty = Math.floor(heldQty * 1e5) / 1e5;
           await placeMarketOrder(apiKey, secret, testnet, symbol, "SELL", { quantity: qty });
-          await supabaseAdmin.from("profiles").update({ bot_in_position: false, bot_qty: 0 }).eq("email", email);
+          await supabaseAdmin.from("profiles").update({ bot_in_position: false, bot_qty: 0, bot_entry_usd: 0 }).eq("email", email);
           action = `💰 VENTE ${qty} ${base}`;
         } catch (e) { action = "Échec vente"; detail = e instanceof Error ? e.message : ""; }
       } else {
