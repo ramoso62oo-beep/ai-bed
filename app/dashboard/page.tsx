@@ -54,7 +54,12 @@ export default function DashboardPage() {
   useEffect(() => {
     const email = currentEmail();
     if (!email) return;
-    const load = () => fetch(`/api/dashboard/stats?email=${encodeURIComponent(email)}`).then(r=>r.json()).then(d=>setStats(d)).catch(()=>{});
+    // Affiche tout de suite la dernière valeur connue (évite le clignotement vers la démo)
+    try { const cached = localStorage.getItem("aibed_stats"); if (cached) setStats(JSON.parse(cached)); } catch {}
+    const load = () => fetch(`/api/dashboard/stats?email=${encodeURIComponent(email)}`).then(r=>r.json()).then(d=>{
+      setStats(d);
+      if (d.connected) { try { localStorage.setItem("aibed_stats", JSON.stringify(d)); } catch {} }
+    }).catch(()=>{});
     load();
     const id = setInterval(load, 10000);
     return () => clearInterval(id);
