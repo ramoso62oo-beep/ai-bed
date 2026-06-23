@@ -181,7 +181,7 @@ export default function DashboardPage() {
             </Link>
           ))}
           <div style={{ padding:"6px 14px 4px", fontSize:".5rem", color:"#1a3a6e", textTransform:"uppercase", letterSpacing:".18em", marginTop:8 }}>Compte</div>
-          {[["💼","Portefeuille","/portefeuille"],["📰","Actualités","/actualites"],["🎙️","Experts","/experts"],["💬","Contact","/contact"],["⚙️","Paramètres","/settings"]].map(([ic,lb,href])=>(
+          {[["💼","Portefeuille","/portefeuille"],["📰","Actualités","/actualites"],["🎙️","Experts","/experts"],["💬","Contact","/contact"],["❓","Aide","/aide"],["⚙️","Paramètres","/settings"]].map(([ic,lb,href])=>(
             <Link key={String(lb)} href={String(href)} style={{ ...sb, textDecoration:"none" }}><span>{ic}</span><span>{lb}</span></Link>
           ))}
           {isFounder && <Link href="/admin" style={{ ...sb, textDecoration:"none", color:"#fbbf24" }}><span>👑</span><span>Gestionnaire</span></Link>}

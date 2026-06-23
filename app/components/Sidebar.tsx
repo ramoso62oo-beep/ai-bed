@@ -19,6 +19,7 @@ const ACCOUNT: [string,string,string][] = [
   ["📰","news","/actualites"],
   ["🎙️","experts","/experts"],
   ["💬","contact","/contact"],
+  ["❓","help","/aide"],
   ["⚙️","settings","/settings"],
 ];
 

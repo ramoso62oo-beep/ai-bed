@@ -2,16 +2,12 @@
 import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import Sidebar from "../components/Sidebar";
+import AssignBotModal, { type TradeToken } from "../components/AssignBotModal";
 
 type Coin = {
   id:string; symbol:string; name:string; image:string; price:number; mc:number; rank:number; vol:number;
   ch1h:number|null; ch24h:number|null; ch7d:number|null; ath:number; supply:number; spark:number[];
 };
-const MODES = [
-  { id:"patient", label:"Patient", color:"#4a90d9", desc:"Long terme, faible risque" },
-  { id:"actif", label:"Actif", color:"#27ae60", desc:"Swing, risque modéré" },
-  { id:"agressif", label:"Agressif", color:"#c0392b", desc:"Scalping, risque élevé" },
-];
 
 function fmt(n:number){ if(n==null) return "—"; if(n>=1e9)return (n/1e9).toFixed(2)+"Md"; if(n>=1e6)return (n/1e6).toFixed(1)+"M"; if(n>=1e3)return (n/1e3).toFixed(1)+"k"; return n.toLocaleString("fr-FR",{maximumFractionDigits:n<1?6:2}); }
 function fmtP(n:number){ if(n==null) return "—"; return n>=1?n.toLocaleString("fr-FR",{maximumFractionDigits:2}):n.toLocaleString("fr-FR",{maximumFractionDigits:8}); }
@@ -31,7 +27,8 @@ export default function MarchePage(){
   const [loading,setLoading]=useState(true);
   const [q,setQ]=useState("");
   const [sel,setSel]=useState<Coin|null>(null);
-  const [assigned,setAssigned]=useState<Record<string,string>>({});
+  const [assignToken,setAssignToken]=useState<TradeToken|null>(null);
+  const [assigned,setAssigned]=useState<Record<string,{bot?:string;mode?:string}>>({});
 
   useEffect(()=>{ try{ setUser(JSON.parse(localStorage.getItem("aibed_user")||"{}")); }catch{}
     try{ setAssigned(JSON.parse(localStorage.getItem("aibed_assigned")||"{}")); }catch{} },[]);
@@ -43,11 +40,7 @@ export default function MarchePage(){
   },[]);
   useEffect(()=>{ fetchCoins(tab); },[tab,fetchCoins]);
 
-  function assign(coin:Coin, mode:string){
-    const next={...assigned,[coin.id]:mode};
-    setAssigned(next); localStorage.setItem("aibed_assigned",JSON.stringify(next));
-    setSel(null);
-  }
+  function refreshAssigned(){ try{ setAssigned(JSON.parse(localStorage.getItem("aibed_assigned")||"{}")); }catch{} }
 
   const view=coins.filter(c=> !q || c.name.toLowerCase().includes(q.toLowerCase()) || c.symbol.toLowerCase().includes(q.toLowerCase()));
   const card:React.CSSProperties={ background:"rgba(6,13,46,0.6)", border:"1px solid rgba(10,26,92,0.6)", borderRadius:12 };
@@ -82,7 +75,7 @@ export default function MarchePage(){
                 <span style={{ color:"var(--muted)", fontSize:".64rem" }}>{c.rank||"—"}</span>
                 <span style={{ display:"flex", alignItems:"center", gap:9 }}>
                   {c.image && <Image src={c.image} alt="" width={22} height={22} style={{ borderRadius:"50%" }} unoptimized />}
-                  <span><span style={{ color:"white", fontWeight:600 }}>{c.symbol}</span> <span style={{ color:"var(--muted)", fontSize:".62rem" }}>{c.name.length>16?c.name.slice(0,16)+"…":c.name}</span>{assigned[c.id] && <span style={{ marginLeft:6, fontSize:".5rem", padding:"1px 5px", borderRadius:4, background:"rgba(39,174,96,0.15)", color:"var(--green)" }}>🤖 {assigned[c.id]}</span>}</span>
+                  <span><span style={{ color:"white", fontWeight:600 }}>{c.symbol}</span> <span style={{ color:"var(--muted)", fontSize:".62rem" }}>{c.name.length>16?c.name.slice(0,16)+"…":c.name}</span>{assigned[c.id] && <span style={{ marginLeft:6, fontSize:".5rem", padding:"1px 5px", borderRadius:4, background:"rgba(39,174,96,0.15)", color:"var(--green)" }}>🤖 {assigned[c.id].bot}</span>}</span>
                 </span>
                 <span style={{ color:"white" }}>${fmtP(c.price)}</span>
                 <span style={{ color:chColor(c.ch1h), fontSize:".66rem" }}>{c.ch1h!=null?(c.ch1h>=0?"+":"")+c.ch1h.toFixed(1)+"%":"—"}</span>
@@ -115,19 +108,13 @@ export default function MarchePage(){
                 <div key={k} style={{ background:"rgba(4,7,26,0.5)", borderRadius:7, padding:"8px 10px" }}><div style={{ color:"var(--muted)" }}>{k}</div><div style={{ color:"white", fontWeight:600 }}>{v}</div></div>
               ))}
             </div>
-            <div style={{ fontSize:".68rem", color:"var(--muted2)", marginBottom:10, fontWeight:600 }}>🤖 Confier {sel.symbol} à un bot :</div>
-            <div style={{ display:"grid", gap:8, marginBottom:12 }}>
-              {MODES.map(m=>(
-                <button key={m.id} onClick={()=>assign(sel,m.label)} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"11px 14px", borderRadius:8, cursor:"pointer", border:`1px solid ${m.color}`, background:`${m.color}12`, color:"white" }}>
-                  <span style={{ fontWeight:700, color:m.color }}>{m.label}</span>
-                  <span style={{ fontSize:".62rem", color:"var(--muted2)" }}>{m.desc}</span>
-                </button>
-              ))}
-            </div>
+            <button onClick={()=>{ setAssignToken(sel); setSel(null); }} style={{ width:"100%", padding:13, borderRadius:10, background:"var(--red)", border:"none", color:"white", fontSize:".8rem", fontWeight:700, cursor:"pointer", boxShadow:"0 0 16px var(--red-glow)", marginBottom:10 }}>🤖 Confier {sel.symbol} à un bot</button>
             <button onClick={()=>setSel(null)} style={{ width:"100%", padding:10, borderRadius:8, background:"transparent", border:"1px solid rgba(74,111,165,0.3)", color:"var(--muted2)", fontSize:".72rem", cursor:"pointer" }}>Fermer</button>
           </div>
         </div>
       )}
+
+      {assignToken && <AssignBotModal token={assignToken} onClose={()=>{ setAssignToken(null); refreshAssigned(); }} />}
     </div>
   );
 }

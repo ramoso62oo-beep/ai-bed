@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
+import AssignBotModal from "./AssignBotModal";
 
 type Token = {
   id:string; symbol:string; name:string; image:string; price:number; mc:number; rank:number; vol:number;
@@ -27,7 +28,7 @@ export default function TokenTable() {
   const [tokens, setTokens] = useState<Token[]>([]);
   const [loading, setLoading] = useState(true);
   const [trade, setTrade] = useState<Token|null>(null);
-  const [assigned, setAssigned] = useState<Record<string,string>>({});
+  const [assigned, setAssigned] = useState<Record<string,{bot?:string;mode?:string}>>({});
 
   useEffect(()=>{ try{ setAssigned(JSON.parse(localStorage.getItem("aibed_assigned")||"{}")); }catch{} },[]);
 
@@ -44,10 +45,8 @@ export default function TokenTable() {
   },[]);
   useEffect(()=>{ load(tab); const id=setInterval(()=>load(tab), 60000); return ()=>clearInterval(id); },[tab,load]);
 
-  function assign(t:Token, mode:string){
-    const next={...assigned,[t.id]:mode}; setAssigned(next); localStorage.setItem("aibed_assigned",JSON.stringify(next)); setTrade(null);
-  }
   const chColor=(n:number|null)=> n==null?"var(--muted)":n>=0?"var(--green)":"var(--red)";
+  function refreshAssigned(){ try{ setAssigned(JSON.parse(localStorage.getItem("aibed_assigned")||"{}")); }catch{} }
 
   return (
     <div style={{ background:"rgba(6,13,46,0.6)", backdropFilter:"blur(20px)", border:"1px solid rgba(10,26,92,0.6)", borderRadius:12, overflow:"hidden" }}>
@@ -79,34 +78,12 @@ export default function TokenTable() {
             <div style={{ display:"flex", alignItems:"center", gap:6 }}><Spark data={t.spark} up={(t.ch7d||0)>=0}/><span style={{ color:chColor(t.ch7d), fontSize:".6rem" }}>{t.ch7d!=null?(t.ch7d>=0?"+":"")+t.ch7d.toFixed(0)+"%":""}</span></div>
             <span style={{ color:"var(--muted2)" }}>${fmt(t.mc)}</span>
             <span style={{ fontSize:".54rem", padding:"1px 6px", borderRadius:5, background:`${rk.c}22`, color:rk.c, fontWeight:700, justifySelf:"start" }}>{rk.l}</span>
-            <button onClick={e=>{e.stopPropagation();setTrade(t);}} style={{ padding:"5px 12px", borderRadius:6, background:assigned[t.id]?"rgba(39,174,96,0.2)":"var(--red)", border:"none", color:assigned[t.id]?"var(--green)":"white", fontSize:".62rem", fontWeight:700, cursor:"pointer" }}>{assigned[t.id]?"✓ Bot":"Trader"}</button>
+            <button onClick={e=>{e.stopPropagation();setTrade(t);}} style={{ padding:"5px 12px", borderRadius:6, background:assigned[t.id]?"rgba(39,174,96,0.2)":"var(--red)", border:"none", color:assigned[t.id]?"var(--green)":"white", fontSize:".62rem", fontWeight:700, cursor:"pointer" }}>{assigned[t.id]?("✓ "+(assigned[t.id].bot||"Bot")):"Trader"}</button>
           </div>
         );})}
       </div>
 
-      {trade && (
-        <div onClick={()=>setTrade(null)} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.6)", zIndex:300, display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}>
-          <div onClick={e=>e.stopPropagation()} style={{ background:"rgba(6,13,46,0.98)", border:"1px solid rgba(74,111,165,0.3)", borderRadius:14, padding:24, width:"100%", maxWidth:360 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
-              {trade.image && <Image src={trade.image} alt="" width={34} height={34} style={{ borderRadius:"50%" }} unoptimized />}
-              <div><div style={{ fontSize:".95rem", fontWeight:700, color:"white" }}>{trade.symbol}</div><div style={{ fontSize:".62rem", color:"var(--muted)" }}>{trade.name} · Rang #{trade.rank||"—"}</div></div>
-            </div>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginBottom:14, fontSize:".68rem" }}>
-              <div style={{ background:"rgba(4,7,26,0.5)", borderRadius:7, padding:"8px 10px" }}><div style={{ color:"var(--muted)" }}>Prix</div><div style={{ color:"white", fontWeight:600 }}>${fmtP(trade.price)}</div></div>
-              <div style={{ background:"rgba(4,7,26,0.5)", borderRadius:7, padding:"8px 10px" }}><div style={{ color:"var(--muted)" }}>24h</div><div style={{ color:chColor(trade.ch24h), fontWeight:600 }}>{trade.ch24h!=null?(trade.ch24h>=0?"+":"")+trade.ch24h.toFixed(1)+"%":"—"}</div></div>
-              <div style={{ background:"rgba(4,7,26,0.5)", borderRadius:7, padding:"8px 10px" }}><div style={{ color:"var(--muted)" }}>MCap</div><div style={{ color:"white" }}>${fmt(trade.mc)}</div></div>
-              <div style={{ background:"rgba(4,7,26,0.5)", borderRadius:7, padding:"8px 10px" }}><div style={{ color:"var(--muted)" }}>Volume</div><div style={{ color:"white" }}>${fmt(trade.vol)}</div></div>
-            </div>
-            <div style={{ fontSize:".66rem", color:"var(--muted2)", marginBottom:8, fontWeight:600 }}>🤖 Confier {trade.symbol} à un bot :</div>
-            <div style={{ display:"grid", gap:7, marginBottom:10 }}>
-              {([["Patient","#4a90d9"],["Actif","#27ae60"],["Agressif","#c0392b"]] as [string,string][]).map(([lb,c])=>(
-                <button key={lb} onClick={()=>assign(trade,lb)} style={{ padding:"10px 14px", borderRadius:8, cursor:"pointer", border:`1px solid ${c}`, background:`${c}12`, color:c, fontWeight:700, fontSize:".74rem", textAlign:"left" }}>{lb}</button>
-              ))}
-            </div>
-            <button onClick={()=>setTrade(null)} style={{ width:"100%", padding:9, borderRadius:8, background:"transparent", border:"1px solid rgba(74,111,165,0.3)", color:"var(--muted2)", fontSize:".72rem", cursor:"pointer" }}>Fermer</button>
-          </div>
-        </div>
-      )}
+      {trade && <AssignBotModal token={{ id:trade.id, symbol:trade.symbol, name:trade.name, image:trade.image, price:trade.price }} onClose={()=>{ setTrade(null); refreshAssigned(); }} />}
     </div>
   );
 }
