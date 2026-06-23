@@ -6,11 +6,10 @@ export async function GET(req: NextRequest) {
   const symbol = (req.nextUrl.searchParams.get("symbol") || "BTCUSDT").toUpperCase();
   const interval = req.nextUrl.searchParams.get("interval") || "1m";
   const limit = req.nextUrl.searchParams.get("limit") || "120";
+  const endTime = req.nextUrl.searchParams.get("endTime"); // ms — pour charger l'historique
   try {
-    const res = await fetch(
-      `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`,
-      { next: { revalidate: 3 } }
-    );
+    const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit}${endTime?`&endTime=${endTime}`:""}`;
+    const res = await fetch(url, { next: { revalidate: endTime ? 3600 : 3 } });
     if (!res.ok) return NextResponse.json({ candles: [], error: `Binance ${res.status}` });
     const raw = await res.json();
     if (!Array.isArray(raw)) return NextResponse.json({ candles: [], error: raw?.msg || "indisponible" });

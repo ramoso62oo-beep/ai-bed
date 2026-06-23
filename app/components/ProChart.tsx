@@ -52,28 +52,54 @@ export default function ProChart({ pair="BTC" }: { pair?: string }) {
     return () => { ro.disconnect(); chart.remove(); chartRef.current=null; candleRef.current=null; volRef.current=null; initedRef.current=false; };
   }, []);
 
-  const fetchKlines = useCallback(async () => {
+  const dataRef = useRef<K[]>([]);
+  const loadingMore = useRef(false);
+
+  const fetchKlines = useCallback(async (endTime?:number) => {
     const interval = (TF.find(t=>t[0]===tf)||TF[1])[1];
     try {
-      const d = await fetch(`/api/klines?symbol=${sym}USDT&interval=${interval}&limit=500`).then(r=>r.json());
-      const candles: K[] = d.candles || [];
-      return candles;
+      const d = await fetch(`/api/klines?symbol=${sym}USDT&interval=${interval}&limit=1000${endTime?`&endTime=${endTime}`:""}`).then(r=>r.json());
+      return (d.candles || []) as K[];
     } catch { return []; }
   }, [sym, tf]);
 
-  // Chargement initial + données quand sym/tf change
+  const draw = useCallback((candles:K[]) => {
+    if (!candleRef.current) return;
+    candleRef.current.setData(candles.map(k=>({ time: k.t as UTCTimestamp, open:k.o, high:k.h, low:k.l, close:k.c })));
+    volRef.current?.setData(candles.map(k=>({ time: k.t as UTCTimestamp, value:k.v, color: k.c>=k.o ? "rgba(39,174,96,0.4)" : "rgba(192,57,43,0.4)" })));
+  }, []);
+
+  // Chargement initial + temps réel + historique au scroll
   useEffect(() => {
     let active = true;
+    dataRef.current = [];
     (async () => {
       const candles = await fetchKlines();
       if (!active || !candleRef.current || !candles.length) return;
-      candleRef.current.setData(candles.map(k=>({ time: k.t as UTCTimestamp, open:k.o, high:k.h, low:k.l, close:k.c })));
-      volRef.current?.setData(candles.map(k=>({ time: k.t as UTCTimestamp, value:k.v, color: k.c>=k.o ? "rgba(39,174,96,0.4)" : "rgba(192,57,43,0.4)" })));
+      dataRef.current = candles;
+      draw(candles);
       chartRef.current?.timeScale().fitContent();
       const last=candles[candles.length-1], open0=candles[0].o;
       setInfo({ price:last.c, ch: open0?((last.c-open0)/open0)*100:0, high:Math.max(...candles.map(c=>c.h)), low:Math.min(...candles.map(c=>c.l)), src:"Binance" });
     })();
-    // Mise à jour temps réel (met à jour la dernière bougie sans casser le zoom)
+
+    // Charge l'historique quand on scrolle vers la gauche (passé)
+    const onRange = async (range: { from:number }|null) => {
+      if (!range || loadingMore.current || range.from > 8 || dataRef.current.length < 50) return;
+      loadingMore.current = true;
+      const oldest = dataRef.current[0];
+      const older = await fetchKlines(oldest.t*1000 - 1);
+      if (older.length) {
+        const merged = [...older.filter(k=>k.t < oldest.t), ...dataRef.current];
+        dataRef.current = merged;
+        draw(merged);
+      }
+      loadingMore.current = false;
+    };
+    const ts = chartRef.current?.timeScale();
+    ts?.subscribeVisibleLogicalRangeChange(onRange);
+
+    // Mise à jour temps réel (dernière bougie, sans casser le zoom)
     const period = (TF.find(t=>t[0]===tf)||TF[1])[2];
     const id = setInterval(async () => {
       const candles = await fetchKlines();
@@ -81,10 +107,12 @@ export default function ProChart({ pair="BTC" }: { pair?: string }) {
       const last = candles[candles.length-1];
       candleRef.current.update({ time: last.t as UTCTimestamp, open:last.o, high:last.h, low:last.l, close:last.c });
       volRef.current?.update({ time: last.t as UTCTimestamp, value:last.v, color: last.c>=last.o ? "rgba(39,174,96,0.4)" : "rgba(192,57,43,0.4)" });
+      if (dataRef.current.length) dataRef.current[dataRef.current.length-1] = last;
       setInfo(prev=>({ ...prev, price:last.c }));
     }, period);
-    return () => { active=false; clearInterval(id); };
-  }, [fetchKlines, tf]);
+
+    return () => { active=false; clearInterval(id); ts?.unsubscribeVisibleLogicalRangeChange(onRange); };
+  }, [fetchKlines, tf, draw]);
 
   const symbols = coins.length ? coins : ["BTC","ETH","SOL","BNB","XRP","DOGE"];
 

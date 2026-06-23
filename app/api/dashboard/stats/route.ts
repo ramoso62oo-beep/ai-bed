@@ -25,13 +25,15 @@ export async function GET(req: NextRequest) {
     let usdt = 0;
     try { usdt = await getFreeBalance(apiKey, secret, testnet, "USDT"); } catch {}
 
-    let positionValue = 0, pnlUsd = 0, pnlPct = 0;
-    const inPosition = !!p.bot_in_position && Number(p.bot_qty) > 0;
+    let positionValue = 0, pnlUsd = 0, pnlPct = 0, price = 0, entryPrice = 0;
+    const qty = Number(p.bot_qty) || 0;
+    const inPosition = !!p.bot_in_position && qty > 0;
     if (inPosition) {
       try {
-        const price = await getPrice(p.bot_symbol || "BTCUSDT", testnet);
-        positionValue = Number(p.bot_qty) * price;
+        price = await getPrice(p.bot_symbol || "BTCUSDT", testnet);
+        positionValue = qty * price;
         const entry = Number(p.bot_entry_usd) || 0;
+        entryPrice = qty > 0 ? entry / qty : 0;
         pnlUsd = positionValue - entry;
         pnlPct = entry > 0 ? (pnlUsd / entry) * 100 : 0;
       } catch {}
@@ -46,6 +48,10 @@ export async function GET(req: NextRequest) {
       pnlUsd,
       pnlPct,
       inPosition,
+      qty,
+      price,
+      entryPrice,
+      entryUsd: Number(p.bot_entry_usd) || 0,
       botAuto: !!p.bot_auto,
       symbol: p.bot_symbol || "BTCUSDT",
     });

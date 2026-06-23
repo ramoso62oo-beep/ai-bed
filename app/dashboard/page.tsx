@@ -29,7 +29,7 @@ export default function DashboardPage() {
   const [botOn, setBotOn] = useState(true);
   const [mode, setMode] = useState("ACTIF");
   const [balance, setBalance] = useState(9808.43);
-  const [stats, setStats] = useState<{connected:boolean;testnet?:boolean;total?:number;usdt?:number;pnlPct?:number;pnlUsd?:number;inPosition?:boolean;botAuto?:boolean;symbol?:string}>({connected:false});
+  const [stats, setStats] = useState<{connected:boolean;testnet?:boolean;total?:number;usdt?:number;pnlPct?:number;pnlUsd?:number;inPosition?:boolean;botAuto?:boolean;symbol?:string;qty?:number;price?:number;entryPrice?:number;entryUsd?:number}>({connected:false});
   const [posList, setPosList] = useState(POSITIONS);
   const [navOpen, setNavOpen] = useState(false);
   const [env, setEnv] = useState<"demo"|"real">("demo");
@@ -92,6 +92,7 @@ export default function DashboardPage() {
     if (!email) return;
     fetch(`/api/bot/config?email=${encodeURIComponent(email)}`).then(r=>r.json()).then(d=>{
       if (d.config && !botInteracted.current) setBotOn(!!d.config.bot_auto);
+      if (d.config?.bot_mode) setMode(String(d.config.bot_mode).toUpperCase());
     }).catch(()=>{});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user.email]);
@@ -105,6 +106,14 @@ export default function DashboardPage() {
     try {
       await fetch("/api/bot/config", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ email, bot_auto: next }) });
     } catch { setBotOn(!next); } // rollback si échec réseau
+  }
+
+  // Change le mode de risque du bot (PATIENT / ACTIF / AGRESSIF)
+  async function changeMode(m: string) {
+    setMode(m);
+    const email = currentEmail();
+    if (!email) return;
+    fetch("/api/bot/config", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ email, bot_mode: m.toLowerCase() }) }).catch(()=>{});
   }
 
   const isFounder = user.role === "founder";
@@ -190,7 +199,7 @@ export default function DashboardPage() {
           <div style={{ display:"flex", gap:6, marginLeft:12 }}>
             {(["PATIENT","ACTIF","AGRESSIF"] as const).map(m=>(
               <Tooltip key={m} text={MODE_TIP[m]}>
-                <button onClick={()=>setMode(m)} style={{ fontSize:".58rem", fontWeight:700, padding:"4px 11px", borderRadius:20, cursor:"pointer", border:`1px solid ${MODE_COLOR[m]}`, color:mode===m?"white":MODE_COLOR[m], background:mode===m?MODE_COLOR[m]:"transparent", letterSpacing:".08em", transition:"all .2s" }}>{m}</button>
+                <button onClick={()=>changeMode(m)} style={{ fontSize:".58rem", fontWeight:700, padding:"4px 11px", borderRadius:20, cursor:"pointer", border:`1px solid ${MODE_COLOR[m]}`, color:mode===m?"white":MODE_COLOR[m], background:mode===m?MODE_COLOR[m]:"transparent", letterSpacing:".08em", transition:"all .2s" }}>{m}</button>
               </Tooltip>
             ))}
           </div>
@@ -244,7 +253,19 @@ export default function DashboardPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {posList.length === 0 && (
+                    {/* Vraie position du bot (compte réel connecté) */}
+                    {stats.connected && stats.inPosition && (
+                      <tr style={{ borderBottom:"1px solid rgba(39,174,96,0.3)", background:"rgba(39,174,96,0.06)" }}>
+                        <td style={{ padding:"8px 10px", fontWeight:700, color:"white" }}>{(stats.symbol||"").replace(/USDT$/,"")} <span style={{ fontSize:".48rem", color:"var(--green)" }}>● RÉEL</span></td>
+                        <td style={{ padding:"8px 10px" }}><span style={{ fontSize:".52rem", padding:"2px 6px", borderRadius:3, fontWeight:700, background:`${MODE_COLOR[mode]}18`, color:MODE_COLOR[mode] }}>{mode}</span></td>
+                        <td style={{ padding:"8px 10px", color:"var(--muted2)" }}>${(stats.entryPrice||0).toLocaleString("fr-FR",{maximumFractionDigits:2})}</td>
+                        <td style={{ padding:"8px 10px", color:"white" }}>${(stats.price||0).toLocaleString("fr-FR",{maximumFractionDigits:2})}</td>
+                        <td style={{ padding:"8px 10px", color:(stats.pnlPct||0)>=0?"var(--green)":"var(--red)", fontWeight:700 }}>{(stats.pnlPct||0)>=0?"+":""}{(stats.pnlPct||0).toFixed(2)}%</td>
+                        <td style={{ padding:"8px 10px", color:(stats.pnlUsd||0)>=0?"var(--green)":"var(--red)", fontSize:".6rem", fontWeight:700 }}>{(stats.pnlUsd||0)>=0?"+":""}{(stats.pnlUsd||0).toFixed(2)} USDT</td>
+                        <td style={{ padding:"8px 10px" }}><span style={{ fontSize:".5rem", color:"var(--muted)" }}>auto</span></td>
+                      </tr>
+                    )}
+                    {posList.length === 0 && !(stats.connected && stats.inPosition) && (
                       <tr><td colSpan={7} style={{ padding:"14px 10px", color:"var(--muted)", fontSize:".62rem" }}>Aucune position ouverte.</td></tr>
                     )}
                     {posList.map(p=>(
