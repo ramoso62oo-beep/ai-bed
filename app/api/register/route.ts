@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
           full_name,
           phone,
           role: isFounder ? "founder" : "user",
-          plan: isFounder ? "elite" : (plan || "none"),
+          plan: isFounder ? "elite" : "none", // aucun plan payant avant paiement
           subscription_status: isFounder ? "active" : "inactive",
         },
         { onConflict: "email" }

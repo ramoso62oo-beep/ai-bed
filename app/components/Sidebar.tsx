@@ -55,6 +55,11 @@ export default function Sidebar({ founder }: { founder?: boolean }) {
         {NAV.map(([ic,lb,href])=>item(ic,lb,href))}
         <div style={{ padding:"6px 14px 4px", fontSize:".5rem", color:"#1a3a6e", textTransform:"uppercase", letterSpacing:".18em", marginTop:8 }}>{t("account")}</div>
         {ACCOUNT.map(([ic,lb,href])=>item(ic,lb,href))}
+        {founder && (
+          <Link href="/admin" style={{ ...sb, color:path==="/admin"?"white":"#fbbf24", borderLeftColor:path==="/admin"?"#fbbf24":"transparent", background:path==="/admin"?"rgba(251,191,36,0.08)":"transparent" }}>
+            <span>👑</span><span>Gestionnaire</span>
+          </Link>
+        )}
         <Link href="/" style={{ ...sb, marginTop:4, color:"var(--muted)" }}><span>🚪</span><span>{t("logout")}</span></Link>
         <div style={{ padding:"10px 16px 4px" }}><LanguageSwitcher compact /></div>
       </div>

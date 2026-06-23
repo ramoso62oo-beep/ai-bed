@@ -37,7 +37,7 @@ function RegisterForm() {
     localStorage.setItem("aibed_user", JSON.stringify({
       email, phone: dial.split(" ")[0] + phone, fname, lname,
       role: isFounder ? "founder" : "user",
-      plan: isFounder ? "elite" : plan, loggedIn: false,
+      plan: isFounder ? "elite" : "none", loggedIn: false, // plan accordé après paiement uniquement
     }));
 
     // Enregistrer le compte dans la base de données Supabase

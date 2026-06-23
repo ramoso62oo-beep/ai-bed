@@ -157,6 +157,7 @@ export default function DashboardPage() {
           {[["💼","Portefeuille","/portefeuille"],["📰","Actualités","/actualites"],["🎙️","Experts","/experts"],["💬","Contact","/contact"],["⚙️","Paramètres","/settings"]].map(([ic,lb,href])=>(
             <Link key={String(lb)} href={String(href)} style={{ ...sb, textDecoration:"none" }}><span>{ic}</span><span>{lb}</span></Link>
           ))}
+          {isFounder && <Link href="/admin" style={{ ...sb, textDecoration:"none", color:"#fbbf24" }}><span>👑</span><span>Gestionnaire</span></Link>}
           <Link href="/" style={{ ...sb, marginTop:4, textDecoration:"none" }}><span>🚪</span><span>Déconnexion</span></Link>
         </div>
       </aside>
