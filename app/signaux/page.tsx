@@ -2,18 +2,21 @@
 import { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
 
-const SIGNALS = [
-  { sym:"BTC", action:"ACHAT", conf:92, reason:"RSI survendu + rebond support 64k + volume", mode:"PATIENT", time:"3 min" },
-  { sym:"PEPE", action:"ACHAT", conf:87, reason:"Breakout résistance + whale accumulation", mode:"AGRESSIF", time:"11 min" },
-  { sym:"ETH", action:"ATTENTE", conf:64, reason:"Consolidation, attente de confirmation", mode:"ACTIF", time:"19 min" },
-  { sym:"SOL", action:"ACHAT", conf:79, reason:"Tendance haussière + flux CEX→DEX positif", mode:"ACTIF", time:"27 min" },
-  { sym:"RESOLV", action:"VENTE", conf:71, reason:"Divergence baissière RSI + perte de momentum", mode:"AGRESSIF", time:"44 min" },
-];
-const ACT_COLOR: Record<string,string> = { ACHAT:"#27ae60", VENTE:"#c0392b", ATTENTE:"#fbbf24" };
+type Sig = { symbol:string; signal:string; confidence:number; reason:string; rsi:number; price:number };
+const ACT_COLOR: Record<string,string> = { BUY:"#27ae60", SELL:"#c0392b", HOLD:"#fbbf24" };
+const ACT_LABEL: Record<string,string> = { BUY:"ACHAT", SELL:"VENTE", HOLD:"ATTENTE" };
 
 export default function SignauxPage() {
   const [user, setUser] = useState<{role?:string}>({});
+  const [signals, setSignals] = useState<Sig[]>([]);
+  const [loading, setLoading] = useState(true);
+
   useEffect(()=>{ try{ setUser(JSON.parse(localStorage.getItem("aibed_user")||"{}")); }catch{} },[]);
+  useEffect(()=>{
+    const load = () => fetch("/api/signals").then(r=>r.json()).then(d=>{ setSignals(d.signals||[]); setLoading(false); }).catch(()=>setLoading(false));
+    load(); const id = setInterval(load, 60000); return ()=>clearInterval(id);
+  },[]);
+
   const card: React.CSSProperties = { background:"rgba(6,13,46,0.6)", backdropFilter:"blur(20px)", border:"1px solid rgba(10,26,92,0.6)", borderRadius:12, padding:"16px 20px" };
 
   return (
@@ -21,21 +24,31 @@ export default function SignauxPage() {
       <div className="cyber-grid" />
       <Sidebar founder={user.role==="founder"} />
       <div style={{ overflowY:"auto", padding:"78px 28px 40px", position:"relative", zIndex:1 }}>
-        <h1 style={{ fontFamily:"var(--font-orbitron,monospace)", fontSize:"1.3rem", fontWeight:900, color:"white", marginBottom:6 }}>⚡ Signaux IA</h1>
-        <p style={{ fontSize:".72rem", color:"var(--muted)", marginBottom:22 }}>Recommandations générées par l&apos;intelligence artificielle en analysant le marché en continu.</p>
+        <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:6 }}>
+          <h1 style={{ fontFamily:"var(--font-orbitron,monospace)", fontSize:"1.3rem", fontWeight:900, color:"white" }}>⚡ Signaux IA</h1>
+          <span style={{ display:"flex", alignItems:"center", gap:6, fontSize:".62rem", color:"var(--green)", fontWeight:600 }}>
+            <span style={{ width:7, height:7, borderRadius:"50%", background:"var(--green)", animation:"pulse-red 1.5s infinite" }}/> En direct
+          </span>
+        </div>
+        <p style={{ fontSize:".72rem", color:"var(--muted)", marginBottom:22 }}>Signaux générés en temps réel par notre stratégie multi-indicateurs (EMA + RSI + MACD + Bollinger + ATR + volume) sur les vraies données du marché.</p>
+
+        {loading && <div style={{ color:"var(--muted)", fontSize:".8rem" }}>Analyse du marché en cours…</div>}
         <div style={{ display:"grid", gap:14 }}>
-          {SIGNALS.map((s,i)=>(
-            <div key={i} style={{ ...card, display:"flex", alignItems:"center", gap:18 }}>
-              <div style={{ minWidth:70 }}>
-                <div style={{ fontSize:".9rem", fontWeight:700, color:"white" }}>{s.sym}</div>
-                <span style={{ fontSize:".62rem", fontWeight:700, color:ACT_COLOR[s.action] }}>{s.action}</span>
+          {signals.map(s=>(
+            <div key={s.symbol} style={{ ...card, display:"flex", alignItems:"center", gap:18, flexWrap:"wrap" }}>
+              <div style={{ minWidth:84 }}>
+                <div style={{ fontSize:".9rem", fontWeight:700, color:"white" }}>{s.symbol}</div>
+                <span style={{ fontSize:".62rem", fontWeight:700, color:ACT_COLOR[s.signal] }}>{ACT_LABEL[s.signal]}</span>
               </div>
-              <div style={{ flex:1 }}>
-                <div style={{ fontSize:".74rem", color:"var(--text)" }}>{s.reason}</div>
-                <div style={{ fontSize:".6rem", color:"var(--muted)", marginTop:3 }}>Mode {s.mode} • il y a {s.time}</div>
+              <div style={{ minWidth:90 }}>
+                <div style={{ fontSize:".72rem", color:"white", fontWeight:600 }}>${s.price.toLocaleString("fr-FR",{maximumFractionDigits:s.price<1?6:2})}</div>
+                <div style={{ fontSize:".58rem", color:"var(--muted)" }}>RSI {s.rsi}</div>
+              </div>
+              <div style={{ flex:1, minWidth:160 }}>
+                <div style={{ fontSize:".72rem", color:"var(--text)" }}>{s.reason}</div>
               </div>
               <div style={{ textAlign:"center", minWidth:70 }}>
-                <div style={{ fontSize:"1.1rem", fontWeight:900, color:s.conf>80?"var(--green)":s.conf>65?"#fbbf24":"var(--muted2)", fontFamily:"var(--font-orbitron,monospace)" }}>{s.conf}%</div>
+                <div style={{ fontSize:"1.1rem", fontWeight:900, color:s.confidence>=60?ACT_COLOR[s.signal]:"var(--muted2)", fontFamily:"var(--font-orbitron,monospace)" }}>{s.confidence}%</div>
                 <div style={{ fontSize:".55rem", color:"var(--muted)", textTransform:"uppercase", letterSpacing:".06em" }}>Confiance</div>
               </div>
             </div>
