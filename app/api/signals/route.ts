@@ -5,7 +5,7 @@ import { computeSignal } from "@/lib/strategy";
 // Vrais signaux IA : applique la stratégie multi-indicateurs sur les grandes paires (données Binance réelles).
 const PAIRS = ["BTCUSDT","ETHUSDT","SOLUSDT","BNBUSDT","XRPUSDT","DOGEUSDT","ADAUSDT","AVAXUSDT","LINKUSDT","DOTUSDT"];
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   const out = await Promise.all(PAIRS.map(async (symbol) => {
