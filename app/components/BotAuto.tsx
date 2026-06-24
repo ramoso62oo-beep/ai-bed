@@ -68,7 +68,7 @@ export default function BotAuto({ email }: { email?: string }) {
       {saved && <div style={{ fontSize:".64rem", color:"var(--green)", marginBottom:10 }}>✓ Enregistré</div>}
 
       <div style={{ fontSize:".58rem", color:"var(--muted)", lineHeight:1.5, marginBottom:14 }}>
-        Stratégie : RSI + Bandes de Bollinger sur bougies 15 min. Le bot achète en survente et vend en surachat, automatiquement. ⚠️ Le trading comporte un risque de perte.
+        Stratégie multi-indicateurs à confluence : tendance (EMA), momentum (RSI), MACD, volatilité (Bollinger + ATR) et volume sur bougies 15 min. Le bot n&apos;agit que lorsque plusieurs signaux concordent. ⚠️ Le trading comporte un risque de perte.
       </div>
 
       {/* Journal */}

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { decrypt } from "@/lib/crypto";
-import { getCloses, placeMarketOrder } from "@/lib/binance";
+import { getOHLCV, placeMarketOrder } from "@/lib/binance";
 import { computeSignal } from "@/lib/strategy";
 
 // Déclenché par un cron externe. Sécurisé par token.
@@ -37,8 +37,9 @@ export async function GET(req: NextRequest) {
       const apiKey = decrypt(u.binance_key as string);
       const secret = decrypt(u.binance_secret as string);
 
-      const closes = await getCloses(symbol, "15m", 100, testnet);
-      const { signal, reason } = computeSignal(closes, mode);
+      const ohlcv = await getOHLCV(symbol, "15m", 100, testnet);
+      const { signal, reason } = computeSignal(ohlcv, mode);
+      const closes = ohlcv.closes;
       const base = symbol.replace(/USDT$/, "");
 
       let action = "Aucune", detail = reason;

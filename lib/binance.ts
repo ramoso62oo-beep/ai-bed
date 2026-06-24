@@ -49,6 +49,19 @@ export async function getCloses(symbol: string, interval: string, limit: number,
   return d.map((k: unknown[]) => parseFloat(k[4] as string));
 }
 
+// OHLCV complet pour la stratégie multi-indicateurs.
+export async function getOHLCV(symbol: string, interval: string, limit: number, testnet: boolean) {
+  const res = await fetch(`${binanceBase(testnet)}/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`);
+  const d = await res.json();
+  if (!Array.isArray(d)) throw new Error(d.msg || "klines indisponibles");
+  return {
+    highs: d.map((k: unknown[]) => parseFloat(k[2] as string)),
+    lows: d.map((k: unknown[]) => parseFloat(k[3] as string)),
+    closes: d.map((k: unknown[]) => parseFloat(k[4] as string)),
+    volumes: d.map((k: unknown[]) => parseFloat(k[5] as string)),
+  };
+}
+
 // Solde libre d'un actif
 export async function getFreeBalance(apiKey: string, secret: string, testnet: boolean, asset: string): Promise<number> {
   const acc = await binanceSigned(apiKey, secret, testnet, "GET", "/api/v3/account");
