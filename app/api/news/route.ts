@@ -1,18 +1,37 @@
 import { NextResponse } from "next/server";
 
-// Vraies actualités crypto via CryptoCompare (gratuit, sans clé).
+// Vraies actualités crypto via flux RSS gratuits (sans clé).
+const FEEDS = [
+  { url: "https://cointelegraph.com/rss", source: "Cointelegraph" },
+  { url: "https://www.coindesk.com/arc/outboundfeeds/rss/?outputType=xml", source: "CoinDesk" },
+];
+
+function strip(s: string) {
+  return s.replace(/<!\[CDATA\[/g, "").replace(/\]\]>/g, "").replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").replace(/&#39;/g, "'").replace(/&quot;/g, '"').trim();
+}
+function tag(block: string, name: string) {
+  const m = block.match(new RegExp(`<${name}[^>]*>([\\s\\S]*?)</${name}>`, "i"));
+  return m ? strip(m[1]) : "";
+}
+
 export async function GET() {
-  try {
-    const res = await fetch("https://min-api.cryptocompare.com/data/v2/news/?lang=EN", { next: { revalidate: 120 } });
-    if (!res.ok) return NextResponse.json({ news: [], error: `news ${res.status}` });
-    const d = await res.json();
-    const news = (d.Data || []).slice(0, 30).map((n: Record<string, unknown>) => ({
-      id: n.id, title: n.title, url: n.url, source: n.source_info && (n.source_info as { name?:string }).name || n.source,
-      ts: (n.published_on as number) * 1000,
-      tags: String(n.categories || "").split("|").filter(Boolean).slice(0, 2),
-    }));
-    return NextResponse.json({ news });
-  } catch (err) {
-    return NextResponse.json({ news: [], error: err instanceof Error ? err.message : "Erreur" });
+  const out: { id:string; title:string; url:string; source:string; ts:number; tags:string[] }[] = [];
+  for (const feed of FEEDS) {
+    try {
+      const res = await fetch(feed.url, { next: { revalidate: 300 }, headers: { "User-Agent": "Mozilla/5.0" } });
+      if (!res.ok) continue;
+      const xml = await res.text();
+      const items = xml.match(/<item[\s\S]*?<\/item>/g) || [];
+      for (const it of items.slice(0, 15)) {
+        const title = tag(it, "title");
+        const link = tag(it, "link") || (it.match(/<link[^>]*>([\s\S]*?)<\/link>/i)?.[1] || "").trim();
+        const pub = tag(it, "pubDate");
+        const cat = (it.match(/<category[^>]*>([\s\S]*?)<\/category>/i)?.[1] || "");
+        if (!title) continue;
+        out.push({ id: link || title, title, url: link, source: feed.source, ts: pub ? new Date(pub).getTime() : Date.now(), tags: cat ? [strip(cat)] : [] });
+      }
+    } catch {}
   }
+  out.sort((a, b) => b.ts - a.ts);
+  return NextResponse.json({ news: out.slice(0, 30) });
 }
