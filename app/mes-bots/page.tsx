@@ -13,22 +13,28 @@ const AVATARS = ["🐂","🦅","🐉","🦁","🐺","🦊","🤖","👾","🎯",
 const MODES = ["PATIENT","ACTIF","AGRESSIF"];
 const MODE_COLOR: Record<string,string> = { PATIENT:"#4a90d9", ACTIF:"#27ae60", AGRESSIF:"#c0392b" };
 const DEFAULT: Bot[] = [
-  { id:1, avatar:"🐂", name:"Bot #1", mode:"ACTIF", pnl:+4.23, on:true },
-  { id:2, avatar:"🦅", name:"Bot #2", mode:"PATIENT", pnl:+1.85, on:true },
+  { id:1, avatar:"🐂", name:"Bot #1", mode:"ACTIF", pnl:0, on:true },
 ];
 
 export default function MesBotsPage() {
   const access = useAccess();
   const [user, setUser] = useState<{email?:string;role?:string;plan?:string}>({});
   const [bots, setBots] = useState<Bot[]>([]);
+  const [status, setStatus] = useState<{inPosition?:boolean;pnlPct?:number;symbol?:string}|null>(null);
   const [modal, setModal] = useState(false);
   const [newName, setNewName] = useState("");
   const [newAvatar, setNewAvatar] = useState(6);
   const [newMode, setNewMode] = useState("ACTIF");
 
   useEffect(()=>{
-    try{ setUser(JSON.parse(localStorage.getItem("aibed_user")||"{}")); }catch{}
+    let u: {email?:string} = {};
+    try{ u = JSON.parse(localStorage.getItem("aibed_user")||"{}"); setUser(u); }catch{}
     try{ const s = localStorage.getItem("aibed_bots"); setBots(s?JSON.parse(s):DEFAULT); }catch{ setBots(DEFAULT); }
+    // Vrai P&L du bot (compte connecté)
+    if (u.email) {
+      const load = () => fetch(`/api/bot/status?email=${encodeURIComponent(u.email!)}`).then(r=>r.json()).then(d=>{ if(!d.error) setStatus(d); }).catch(()=>{});
+      load(); const id = setInterval(load, 8000); return ()=>clearInterval(id);
+    }
   },[]);
 
   function persist(next:Bot[]){ setBots(next); localStorage.setItem("aibed_bots", JSON.stringify(next)); }
@@ -81,8 +87,12 @@ export default function MesBotsPage() {
                 </Tooltip>
               </div>
               <div style={{ display:"flex", justifyContent:"space-between", fontSize:".72rem", marginBottom:12 }}>
-                <span style={{ color:"var(--muted)" }}>PnL 24h</span>
-                <span style={{ color:b.pnl>0?"var(--green)":b.pnl<0?"var(--red)":"var(--muted2)", fontWeight:700 }}>{b.pnl>0?"+":""}{b.pnl}%</span>
+                <span style={{ color:"var(--muted)" }}>{status?.inPosition ? `Position ${(status.symbol||"").replace(/USDT$/,"")}` : "P&L position"}</span>
+                {b.on && status?.inPosition ? (
+                  <span style={{ color:(status.pnlPct||0)>=0?"var(--green)":"var(--red)", fontWeight:700 }}>{(status.pnlPct||0)>=0?"+":""}{(status.pnlPct||0).toFixed(2)}%</span>
+                ) : (
+                  <span style={{ color:"var(--muted2)", fontWeight:600, fontSize:".64rem" }}>{b.on ? "En attente" : "En pause"}</span>
+                )}
               </div>
               <Tooltip text={b.on?"Bot actif : il trade automatiquement. Cliquez pour mettre en pause.":"Bot en pause. Cliquez pour l'activer."}>
                 <div onClick={()=>toggle(b.id)} style={{ display:"flex", alignItems:"center", gap:8, cursor:"pointer" }}>

@@ -10,12 +10,6 @@ import NewsFeed from "../components/NewsFeed";
 import Tilt3D from "../components/Tilt3D";
 import { useAccess, VisitorBanner, DemoResetBanner } from "../components/Access";
 
-const POSITIONS = [
-  { sym:"BTCUSDT",    side:"LONG",  mode:"PATIENT",   entry:64125, current:64310, pnl:+0.29, sl:63612, tp:65279 },
-  { sym:"TNSRUSDT",   side:"LONG",  mode:"ACTIF",     entry:.0436, current:.0441, pnl:+1.15, sl:.0432, tp:.0444 },
-  { sym:"RESOLVUSDT", side:"SHORT", mode:"AGRESSIF",  entry:.0249, current:.0244, pnl:-2.01, sl:.0252, tp:.0238 },
-  { sym:"STRAXUSDT",  side:"LONG",  mode:"ACTIF",     entry:.01084,current:.01091,pnl:+0.65, sl:.01075,tp:.01103 },
-];
 const AVATARS = ["🐂","🦅","🐉","🦁","🐺","🦊","🤖","👾","🎯","💀","🌙","⚡","🔥","💎","🚀","🌊","🎭","🏆","👑","⚔️"];
 
 const MODE_COLOR: Record<string, string> = { PATIENT:"#4a90d9", ACTIF:"#27ae60", AGRESSIF:"#c0392b" };
@@ -32,7 +26,6 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<{connected:boolean;testnet?:boolean;total?:number;usdt?:number;pnlPct?:number;pnlUsd?:number;inPosition?:boolean;botAuto?:boolean;symbol?:string;qty?:number;price?:number;entryPrice?:number;entryUsd?:number}>({connected:false});
   const [statsTime, setStatsTime] = useState(0);
   const [, forceTick] = useState(0);
-  const [posList, setPosList] = useState(POSITIONS);
   const [navOpen, setNavOpen] = useState(false);
   const [env, setEnv] = useState<"demo"|"real">("demo");
   const botInteracted = useRef(false);
@@ -116,7 +109,6 @@ export default function DashboardPage() {
   // → applique le mode à TOUTES les positions ouvertes + au bot
   async function changeMode(m: string) {
     setMode(m);
-    setPosList(list => list.map(p => ({ ...p, mode: m })));
     const email = currentEmail();
     if (!email) return;
     fetch("/api/bot/config", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ email, bot_mode: m.toLowerCase() }) }).catch(()=>{});
@@ -250,47 +242,34 @@ export default function DashboardPage() {
             {/* Positions */}
             <div className="panel-pos" style={{ background:"rgba(6,13,46,0.55)", border:"1px solid rgba(10,26,92,0.6)", borderRadius:10, flex:1, overflow:"hidden", display:"flex", flexDirection:"column" }}>
               <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"9px 13px", borderBottom:"1px solid rgba(10,26,92,0.6)", flexShrink:0 }}>
-                <span style={{ fontSize:".66rem", fontWeight:700, color:"white", textTransform:"uppercase", letterSpacing:".08em" }}>📋 Positions ouvertes</span>
-                <Tooltip text="Réinitialise la liste des positions ouvertes par le bot.">
-                  <button onClick={()=>setPosList(POSITIONS)} style={{ fontSize:".6rem", background:"rgba(192,57,43,0.1)", border:"1px solid rgba(192,57,43,0.3)", color:"var(--red)", padding:"4px 10px", borderRadius:5, cursor:"pointer" }}>↻ Rafraîchir</button>
-                </Tooltip>
+                <span style={{ fontSize:".66rem", fontWeight:700, color:"white", textTransform:"uppercase", letterSpacing:".08em" }}>📋 Position ouverte</span>
+                <Link href="/positions" style={{ fontSize:".58rem", color:"var(--blue)", textDecoration:"none" }}>Détails →</Link>
               </div>
               <div style={{ overflow:"auto", flex:1 }}>
                 <table style={{ width:"100%", borderCollapse:"collapse", fontSize:".64rem" }}>
                   <thead>
                     <tr style={{ borderBottom:"1px solid rgba(10,26,92,0.4)" }}>
-                      {["Paire","Mode","Entrée","Actuel","PnL","SL / TP",""].map(h=>(
+                      {["Paire","Mode","Entrée","Actuel","PnL %","PnL USDT","SL / TP"].map(h=>(
                         <th key={h} style={{ padding:"6px 10px", color:"#1a3a6e", fontSize:".54rem", textTransform:"uppercase", letterSpacing:".1em", textAlign:"left", fontWeight:600 }}>{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
-                    {/* Vraie position du bot (compte réel connecté) */}
-                    {stats.connected && stats.inPosition && (
+                    {stats.connected && stats.inPosition ? (
                       <tr style={{ borderBottom:"1px solid rgba(39,174,96,0.3)", background:"rgba(39,174,96,0.06)" }}>
                         <td style={{ padding:"8px 10px", fontWeight:700, color:"white" }}>{(stats.symbol||"").replace(/USDT$/,"")} <span style={{ fontSize:".48rem", color:"var(--green)" }}>● RÉEL</span></td>
                         <td style={{ padding:"8px 10px" }}><span style={{ fontSize:".52rem", padding:"2px 6px", borderRadius:3, fontWeight:700, background:`${MODE_COLOR[mode]}18`, color:MODE_COLOR[mode] }}>{mode}</span></td>
                         <td style={{ padding:"8px 10px", color:"var(--muted2)" }}>${(stats.entryPrice||0).toLocaleString("fr-FR",{maximumFractionDigits:2})}</td>
                         <td style={{ padding:"8px 10px", color:"white" }}>${(stats.price||0).toLocaleString("fr-FR",{maximumFractionDigits:2})}</td>
                         <td style={{ padding:"8px 10px", color:(stats.pnlPct||0)>=0?"var(--green)":"var(--red)", fontWeight:700 }}>{(stats.pnlPct||0)>=0?"+":""}{(stats.pnlPct||0).toFixed(2)}%</td>
-                        <td style={{ padding:"8px 10px", color:(stats.pnlUsd||0)>=0?"var(--green)":"var(--red)", fontSize:".6rem", fontWeight:700 }}>{(stats.pnlUsd||0)>=0?"+":""}{(stats.pnlUsd||0).toFixed(2)} USDT</td>
-                        <td style={{ padding:"8px 10px" }}><span style={{ fontSize:".5rem", color:"var(--muted)" }}>auto</span></td>
+                        <td style={{ padding:"8px 10px", color:(stats.pnlUsd||0)>=0?"var(--green)":"var(--red)", fontSize:".6rem", fontWeight:700 }}>{(stats.pnlUsd||0)>=0?"+":""}{(stats.pnlUsd||0).toFixed(2)}</td>
+                        <td style={{ padding:"8px 10px" }}><Link href="/positions" style={{ fontSize:".5rem", color:"var(--blue)", textDecoration:"none" }}>voir →</Link></td>
                       </tr>
+                    ) : (
+                      <tr><td colSpan={7} style={{ padding:"16px 10px", color:"var(--muted)", fontSize:".62rem" }}>
+                        {stats.connected ? "Aucune position ouverte — le bot attend un signal d'achat." : "Connectez votre compte (Mes bots) pour suivre vos positions réelles."}
+                      </td></tr>
                     )}
-                    {posList.length === 0 && !(stats.connected && stats.inPosition) && (
-                      <tr><td colSpan={7} style={{ padding:"14px 10px", color:"var(--muted)", fontSize:".62rem" }}>Aucune position ouverte.</td></tr>
-                    )}
-                    {posList.map(p=>(
-                      <tr key={p.sym} style={{ borderBottom:"1px solid rgba(10,26,92,0.3)" }}>
-                        <td style={{ padding:"8px 10px", fontWeight:700, color:"white" }}>{p.sym}</td>
-                        <td style={{ padding:"8px 10px" }}><span style={{ fontSize:".52rem", padding:"2px 6px", borderRadius:3, fontWeight:700, letterSpacing:".08em", background:`${MODE_COLOR[p.mode]}18`, color:MODE_COLOR[p.mode] }}>{p.mode}</span></td>
-                        <td style={{ padding:"8px 10px", color:"var(--muted2)" }}>{p.entry}</td>
-                        <td style={{ padding:"8px 10px", color:"var(--muted2)" }}>{p.current}</td>
-                        <td style={{ padding:"8px 10px", color:p.pnl>=0?"var(--green)":"var(--red)", fontWeight:700 }}>{p.pnl>=0?"+":""}{p.pnl}%</td>
-                        <td style={{ padding:"8px 10px", color:"var(--muted)", fontSize:".6rem" }}>{p.sl} / {p.tp}</td>
-                        <td style={{ padding:"8px 10px" }}><button onClick={()=>setPosList(l=>l.filter(x=>x.sym!==p.sym))} style={{ background:"rgba(192,57,43,0.08)", border:"1px solid rgba(192,57,43,0.25)", borderRadius:4, color:"var(--red)", fontSize:".56rem", padding:"3px 7px", cursor:"pointer" }}>Fermer</button></td>
-                      </tr>
-                    ))}
                   </tbody>
                 </table>
               </div>
