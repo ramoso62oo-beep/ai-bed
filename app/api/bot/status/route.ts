@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
 
     const { data: p } = await supabaseAdmin
       .from("profiles")
-      .select("bot_auto, bot_symbol, bot_in_position, bot_qty, bot_entry_usd, bot_amount, binance_testnet, binance_key")
+      .select("bot_auto, bot_symbol, bot_mode, bot_in_position, bot_qty, bot_entry_usd, bot_amount, bot_sl, bot_tp, binance_testnet, binance_key")
       .eq("email", email).single();
 
     if (!p) return NextResponse.json({ error: "Compte introuvable." }, { status: 404 });
@@ -19,6 +19,7 @@ export async function GET(req: NextRequest) {
     const inPos = !!p.bot_in_position;
     const qty = Number(p.bot_qty) || 0;
     const entryUsd = Number(p.bot_entry_usd) || Number(p.bot_amount) || 0;
+    const entryPrice = qty > 0 ? entryUsd / qty : 0;
 
     let price = 0, currentValue = 0, pnlUsd = 0, pnlPct = 0;
     if (inPos && qty > 0) {
@@ -35,12 +36,17 @@ export async function GET(req: NextRequest) {
       auto: !!p.bot_auto,
       inPosition: inPos,
       symbol,
+      mode: p.bot_mode || "actif",
+      testnet: p.binance_testnet,
       qty,
       price,
+      entryPrice,
       entryUsd,
       currentValue,
       pnlUsd,
       pnlPct,
+      sl: Number(p.bot_sl) || 0,
+      tp: Number(p.bot_tp) || 0,
     });
   } catch (err) {
     return NextResponse.json({ error: err instanceof Error ? err.message : "Erreur" }, { status: 500 });
