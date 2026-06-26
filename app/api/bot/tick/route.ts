@@ -80,15 +80,30 @@ export async function GET(req: NextRequest) {
       }
       // 2) Signal d'achat (hors position) — avec filtre marché global
       else if (signal === "BUY" && !inPosition) {
+        // Confirmation multi-timeframe : la tendance 1h doit être haussière
+        let h1Bullish = true;
+        try {
+          const h1 = await getOHLCV(symbol, "1h", 50, testnet);
+          const cc = h1.closes, nn = cc.length;
+          const ef = ema(cc, 9), es = ema(cc, 21);
+          h1Bullish = ef[nn - 1] >= es[nn - 1] * 0.997;
+        } catch {}
+
         if (!btcBullish && symbol !== "BTCUSDT") {
-          finalSignal = "HOLD"; detail = "Signal d'achat ignoré : tendance BTC baissière (filtre marché)";
+          finalSignal = "HOLD"; detail = "Achat ignoré : tendance BTC baissière (filtre marché)";
+        } else if (!h1Bullish) {
+          finalSignal = "HOLD"; detail = "Achat ignoré : tendance 1h baissière (confirmation multi-timeframe)";
         } else {
+          // Taille de position dynamique selon la volatilité (réduit la mise quand c'est volatil)
+          const volPct = result.volPct || 2;
+          const sizeFactor = Math.min(1, Math.max(0.3, 2 / volPct));
+          const tradeAmount = Math.max(11, amount * sizeFactor); // min 11 USDT (notional Binance)
           try {
-            const order = await placeMarketOrder(apiKey, secret, testnet, symbol, "BUY", { quoteOrderQty: amount });
+            const order = await placeMarketOrder(apiKey, secret, testnet, symbol, "BUY", { quoteOrderQty: tradeAmount });
             const qty = parseFloat((order as { executedQty?: string }).executedQty || "0");
-            const spent = parseFloat((order as { cummulativeQuoteQty?: string }).cummulativeQuoteQty || String(amount));
+            const spent = parseFloat((order as { cummulativeQuoteQty?: string }).cummulativeQuoteQty || String(tradeAmount));
             await supabaseAdmin.from("profiles").update({ bot_in_position: true, bot_qty: qty, bot_entry_usd: spent, bot_sl: result.sl || 0, bot_tp: result.tp || 0 }).eq("email", email);
-            action = `✅ ACHAT ${qty} ${base} (${spent.toFixed(2)} USDT) · SL ${(result.sl||0).toFixed(2)} / TP ${(result.tp||0).toFixed(2)}`;
+            action = `✅ ACHAT ${qty} ${base} (${spent.toFixed(2)} USDT · taille ×${sizeFactor.toFixed(2)}) · SL ${(result.sl||0).toFixed(2)} / TP ${(result.tp||0).toFixed(2)}`;
           } catch (e) { action = "Échec achat"; detail = e instanceof Error ? e.message : ""; }
         }
       }

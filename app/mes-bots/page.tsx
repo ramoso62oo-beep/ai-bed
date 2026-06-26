@@ -5,6 +5,7 @@ import Tooltip from "../components/Tooltip";
 import ConnectExchange from "../components/ConnectExchange";
 import BotAuto from "../components/BotAuto";
 import BotMonitor from "../components/BotMonitor";
+import BacktestPanel from "../components/BacktestPanel";
 import { useAccess, PlanGate } from "../components/Access";
 
 type Bot = { id:number; avatar:string; name:string; mode:string; pnl:number; on:boolean };
@@ -65,6 +66,7 @@ export default function MesBotsPage() {
           <div style={{ display:"grid", gap:16, marginBottom:24 }}>
             <BotMonitor email={user.email} />
             <BotAuto email={user.email} />
+            <BacktestPanel />
           </div>
         </PlanGate>
         <PlanGate access={access} need="subscription" label="Les bots automatisés sont réservés aux abonnés">

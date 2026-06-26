@@ -43,7 +43,7 @@ function atr(highs: number[], lows: number[], closes: number[], period = 14): nu
 // Seuil de confluence requis selon le mode (sur 5 signaux possibles)
 const THRESHOLD: Record<string, number> = { patient: 4, actif: 3, agressif: 2 };
 
-export function computeSignal(data: OHLCV, mode = "actif"): { signal: Signal; rsi: number; reason: string; sl?: number; tp?: number; confidence: number } {
+export function computeSignal(data: OHLCV, mode = "actif"): { signal: Signal; rsi: number; reason: string; sl?: number; tp?: number; confidence: number; volPct?: number } {
   const { closes, highs, lows, volumes } = data;
   if (closes.length < 30) return { signal: "HOLD", rsi: 50, reason: "Pas assez de données", confidence: 0 };
 
@@ -74,12 +74,13 @@ export function computeSignal(data: OHLCV, mode = "actif"): { signal: Signal; rs
   if (volHigh) { sell++; sReasons.push("volume fort"); }
 
   const th = THRESHOLD[mode] || 3;
+  const volPct = price > 0 ? (a / price) * 100 : 2;
 
   if (buy >= th && buy >= sell) {
-    return { signal: "BUY", rsi: r, reason: `Achat ${buy}/5 (${bReasons.join(", ")})`, sl: price - a * 1.5, tp: price + a * 2.5, confidence: Math.round((buy / 5) * 100) };
+    return { signal: "BUY", rsi: r, reason: `Achat ${buy}/5 (${bReasons.join(", ")})`, sl: price - a * 1.5, tp: price + a * 2.5, confidence: Math.round((buy / 5) * 100), volPct };
   }
   if (sell >= th && sell > buy) {
-    return { signal: "SELL", rsi: r, reason: `Vente ${sell}/5 (${sReasons.join(", ")})`, confidence: Math.round((sell / 5) * 100) };
+    return { signal: "SELL", rsi: r, reason: `Vente ${sell}/5 (${sReasons.join(", ")})`, confidence: Math.round((sell / 5) * 100), volPct };
   }
-  return { signal: "HOLD", rsi: r, reason: `Neutre (achat ${buy}/5, vente ${sell}/5, RSI ${r.toFixed(0)})`, confidence: Math.round((Math.max(buy, sell) / 5) * 100) };
+  return { signal: "HOLD", rsi: r, reason: `Neutre (achat ${buy}/5, vente ${sell}/5, RSI ${r.toFixed(0)})`, confidence: Math.round((Math.max(buy, sell) / 5) * 100), volPct };
 }
