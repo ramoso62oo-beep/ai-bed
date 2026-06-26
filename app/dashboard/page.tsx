@@ -30,6 +30,8 @@ export default function DashboardPage() {
   const [mode, setMode] = useState("ACTIF");
   const [balance, setBalance] = useState(9808.43);
   const [stats, setStats] = useState<{connected:boolean;testnet?:boolean;total?:number;usdt?:number;pnlPct?:number;pnlUsd?:number;inPosition?:boolean;botAuto?:boolean;symbol?:string;qty?:number;price?:number;entryPrice?:number;entryUsd?:number}>({connected:false});
+  const [statsTime, setStatsTime] = useState(0);
+  const [, forceTick] = useState(0);
   const [posList, setPosList] = useState(POSITIONS);
   const [navOpen, setNavOpen] = useState(false);
   const [env, setEnv] = useState<"demo"|"real">("demo");
@@ -50,19 +52,21 @@ export default function DashboardPage() {
     }
   }, [session]);
 
-  // Stats RÉELLES depuis le compte connecté (rafraîchies toutes les 10 s)
+  // Stats RÉELLES depuis le compte connecté (rafraîchies toutes les 8 s)
   useEffect(() => {
-    const email = currentEmail();
-    if (!email) return;
-    // Affiche tout de suite la dernière valeur connue (évite le clignotement vers la démo)
     try { const cached = localStorage.getItem("aibed_stats"); if (cached) setStats(JSON.parse(cached)); } catch {}
-    const load = () => fetch(`/api/dashboard/stats?email=${encodeURIComponent(email)}`).then(r=>r.json()).then(d=>{
-      setStats(d);
-      if (d.connected) { try { localStorage.setItem("aibed_stats", JSON.stringify(d)); } catch {} }
-    }).catch(()=>{});
+    const load = () => {
+      const email = currentEmail(); // lu à chaque fois (robuste si l'email arrive plus tard)
+      if (!email) return;
+      fetch(`/api/dashboard/stats?email=${encodeURIComponent(email)}`).then(r=>r.json()).then(d=>{
+        setStats(d); setStatsTime(Date.now());
+        if (d.connected) { try { localStorage.setItem("aibed_stats", JSON.stringify(d)); } catch {} }
+      }).catch(()=>{});
+    };
     load();
-    const id = setInterval(load, 10000);
-    return () => clearInterval(id);
+    const id = setInterval(load, 8000);
+    const tick = setInterval(()=>forceTick(x=>x+1), 1000);
+    return () => { clearInterval(id); clearInterval(tick); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user.email]);
 
@@ -213,6 +217,12 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {stats.connected && statsTime>0 && (
+          <div style={{ display:"flex", alignItems:"center", gap:6, padding:"6px 18px 0", fontSize:".58rem", color:"var(--green)" }}>
+            <span style={{ width:6, height:6, borderRadius:"50%", background:"var(--green)", animation:"pulse-red 1.5s infinite" }}/>
+            Données réelles · mis à jour il y a {Math.max(0,Math.round((Date.now()-statsTime)/1000))}s
+          </div>
+        )}
         {/* KPIs */}
         <div className="dash-kpis" style={{ display:"grid", gridTemplateColumns:"repeat(5,1fr)", gap:8, padding:"10px 16px", flexShrink:0 }}>
           {stats.connected ? <>

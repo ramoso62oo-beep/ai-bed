@@ -4,6 +4,12 @@ import { decrypt } from "@/lib/crypto";
 import { getOHLCV, placeMarketOrder } from "@/lib/binance";
 import { computeSignal } from "@/lib/strategy";
 
+function ema(vals: number[], p: number): number[] {
+  const k = 2 / (p + 1); let e = vals[0]; const out = [e];
+  for (let i = 1; i < vals.length; i++) { e = vals[i] * k + e * (1 - k); out.push(e); }
+  return out;
+}
+
 // Déclenché par un cron externe. Sécurisé par token.
 // Exécute une itération de stratégie par utilisateur en mode auto.
 // Le bot suit SA propre position (bot_in_position / bot_qty) — indépendamment
@@ -21,6 +27,15 @@ export async function GET(req: NextRequest) {
     .not("binance_key", "is", null);
 
   const results: Array<Record<string, unknown>> = [];
+
+  // Filtre marché global : tendance du BTC (on évite d'acheter des altcoins quand le BTC chute)
+  let btcBullish = true;
+  try {
+    const btc = await getOHLCV("BTCUSDT", "15m", 60, false);
+    const c = btc.closes; const n = c.length;
+    const emaF = ema(c, 9), emaS = ema(c, 21);
+    btcBullish = emaF[n - 1] >= emaS[n - 1] * 0.995; // BTC pas en franche baisse
+  } catch {}
 
   for (const u of users || []) {
     const email = u.email as string;
@@ -63,15 +78,19 @@ export async function GET(req: NextRequest) {
         try { await sellAll("🎯 TAKE-PROFIT"); finalSignal = "TP"; detail = `Prix ${price} ≥ take-profit ${tp.toFixed(2)}`; }
         catch (e) { action = "Échec take-profit"; detail = e instanceof Error ? e.message : ""; }
       }
-      // 2) Signal d'achat (hors position)
+      // 2) Signal d'achat (hors position) — avec filtre marché global
       else if (signal === "BUY" && !inPosition) {
-        try {
-          const order = await placeMarketOrder(apiKey, secret, testnet, symbol, "BUY", { quoteOrderQty: amount });
-          const qty = parseFloat((order as { executedQty?: string }).executedQty || "0");
-          const spent = parseFloat((order as { cummulativeQuoteQty?: string }).cummulativeQuoteQty || String(amount));
-          await supabaseAdmin.from("profiles").update({ bot_in_position: true, bot_qty: qty, bot_entry_usd: spent, bot_sl: result.sl || 0, bot_tp: result.tp || 0 }).eq("email", email);
-          action = `✅ ACHAT ${qty} ${base} (${spent.toFixed(2)} USDT) · SL ${(result.sl||0).toFixed(2)} / TP ${(result.tp||0).toFixed(2)}`;
-        } catch (e) { action = "Échec achat"; detail = e instanceof Error ? e.message : ""; }
+        if (!btcBullish && symbol !== "BTCUSDT") {
+          finalSignal = "HOLD"; detail = "Signal d'achat ignoré : tendance BTC baissière (filtre marché)";
+        } else {
+          try {
+            const order = await placeMarketOrder(apiKey, secret, testnet, symbol, "BUY", { quoteOrderQty: amount });
+            const qty = parseFloat((order as { executedQty?: string }).executedQty || "0");
+            const spent = parseFloat((order as { cummulativeQuoteQty?: string }).cummulativeQuoteQty || String(amount));
+            await supabaseAdmin.from("profiles").update({ bot_in_position: true, bot_qty: qty, bot_entry_usd: spent, bot_sl: result.sl || 0, bot_tp: result.tp || 0 }).eq("email", email);
+            action = `✅ ACHAT ${qty} ${base} (${spent.toFixed(2)} USDT) · SL ${(result.sl||0).toFixed(2)} / TP ${(result.tp||0).toFixed(2)}`;
+          } catch (e) { action = "Échec achat"; detail = e instanceof Error ? e.message : ""; }
+        }
       }
       // 3) Signal de vente (en position)
       else if (signal === "SELL" && inPosition && heldQty > 0) {
@@ -79,6 +98,15 @@ export async function GET(req: NextRequest) {
         catch (e) { action = "Échec vente"; detail = e instanceof Error ? e.message : ""; }
       } else {
         detail = `${result.reason} · ${inPosition ? "en position" : "hors position"}`;
+        // TRAILING STOP : si en position et que le prix a monté, on remonte le stop-loss
+        if (inPosition && heldQty > 0) {
+          const trailPct = mode === "patient" ? 0.03 : mode === "actif" ? 0.02 : 0.015;
+          const newSl = price * (1 - trailPct);
+          if (newSl > sl) {
+            await supabaseAdmin.from("profiles").update({ bot_sl: newSl }).eq("email", email);
+            detail += ` · trailing stop ↑ ${newSl.toFixed(2)}`;
+          }
+        }
       }
 
       await supabaseAdmin.from("bot_log").insert({ email, symbol, signal: finalSignal, action, detail });
