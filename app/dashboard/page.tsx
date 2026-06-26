@@ -233,14 +233,14 @@ export default function DashboardPage() {
         </div>
 
         {/* Grid */}
-        <div className="dash-grid" style={{ display:"grid", gridTemplateColumns:"1fr 320px", gap:8, padding:"0 16px 10px", height:560, flexShrink:0, minHeight:0 }}>
+        <div className="dash-grid" style={{ display:"grid", gridTemplateColumns:"1fr 320px", gap:8, padding:"0 16px 10px", height:720, flexShrink:0, minHeight:0 }}>
 
           <div className="dash-col" style={{ display:"flex", flexDirection:"column", gap:8, minHeight:0, overflow:"hidden" }}>
             {/* Chart */}
             <ProChart pair="BTC/USDT" />
 
             {/* Positions */}
-            <div className="panel-pos" style={{ background:"rgba(6,13,46,0.55)", border:"1px solid rgba(10,26,92,0.6)", borderRadius:10, flex:1, overflow:"hidden", display:"flex", flexDirection:"column" }}>
+            <div className="panel-pos" style={{ background:"rgba(6,13,46,0.55)", border:"1px solid rgba(10,26,92,0.6)", borderRadius:10, flex:1, minHeight:300, overflow:"hidden", display:"flex", flexDirection:"column" }}>
               <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"9px 13px", borderBottom:"1px solid rgba(10,26,92,0.6)", flexShrink:0 }}>
                 <span style={{ fontSize:".66rem", fontWeight:700, color:"white", textTransform:"uppercase", letterSpacing:".08em" }}>📋 Position ouverte</span>
                 <Link href="/positions" style={{ fontSize:".58rem", color:"var(--blue)", textDecoration:"none" }}>Détails →</Link>
