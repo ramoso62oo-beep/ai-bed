@@ -33,6 +33,20 @@ export default function MarchePage(){
   useEffect(()=>{ try{ setUser(JSON.parse(localStorage.getItem("aibed_user")||"{}")); }catch{}
     try{ setAssigned(JSON.parse(localStorage.getItem("aibed_assigned")||"{}")); }catch{} },[]);
 
+  const [searchResults,setSearchResults]=useState<Coin[]>([]);
+  const [searching,setSearching]=useState(false);
+
+  // Recherche mondiale (toute la base CoinGecko) avec debounce
+  useEffect(()=>{
+    const term=q.trim();
+    if(term.length<2){ setSearchResults([]); return; }
+    setSearching(true);
+    const id=setTimeout(()=>{
+      fetch(`/api/search?q=${encodeURIComponent(term)}`).then(r=>r.json()).then(d=>{ setSearchResults(d.coins||[]); setSearching(false); }).catch(()=>setSearching(false));
+    },350);
+    return ()=>clearTimeout(id);
+  },[q]);
+
   const fetchCoins=useCallback(async(t:string)=>{
     setLoading(true);
     try{ const r=await fetch(`/api/market?type=${t}`); const d=await r.json(); setCoins(d.coins||[]); }catch{ setCoins([]); }
@@ -42,7 +56,8 @@ export default function MarchePage(){
 
   function refreshAssigned(){ try{ setAssigned(JSON.parse(localStorage.getItem("aibed_assigned")||"{}")); }catch{} }
 
-  const view=coins.filter(c=> !q || c.name.toLowerCase().includes(q.toLowerCase()) || c.symbol.toLowerCase().includes(q.toLowerCase()));
+  // Si recherche active (≥2 car.) → résultats mondiaux ; sinon la liste de l'onglet
+  const view = q.trim().length>=2 ? searchResults : coins;
   const card:React.CSSProperties={ background:"rgba(6,13,46,0.6)", border:"1px solid rgba(10,26,92,0.6)", borderRadius:12 };
   const chColor=(n:number|null)=> n==null?"var(--muted)":n>=0?"var(--green)":"var(--red)";
 
@@ -59,7 +74,7 @@ export default function MarchePage(){
           {([["crypto","🪙 Cryptos"],["meme","🐸 Memecoins"]] as const).map(([id,lb])=>(
             <button key={id} onClick={()=>setTab(id)} style={{ padding:"9px 18px", borderRadius:9, fontSize:".76rem", fontWeight:700, cursor:"pointer", border:`1px solid ${tab===id?"var(--red)":"rgba(74,111,165,0.3)"}`, background:tab===id?"rgba(192,57,43,0.12)":"transparent", color:tab===id?"white":"var(--muted2)" }}>{lb}</button>
           ))}
-          <input value={q} onChange={e=>setQ(e.target.value)} placeholder="🔎 Rechercher une crypto…" style={{ flex:1, minWidth:160, background:"rgba(4,7,26,0.6)", border:"1px solid rgba(74,111,165,0.3)", borderRadius:9, padding:"9px 14px", color:"white", fontSize:".76rem", outline:"none" }} />
+          <input value={q} onChange={e=>setQ(e.target.value)} placeholder="🔎 Rechercher n'importe quelle crypto / memecoin du monde…" style={{ flex:1, minWidth:200, background:"rgba(4,7,26,0.6)", border:"1px solid rgba(74,111,165,0.3)", borderRadius:9, padding:"9px 14px", color:"white", fontSize:".76rem", outline:"none" }} />
         </div>
 
         {/* List (scrollable) */}
@@ -68,8 +83,8 @@ export default function MarchePage(){
             <span>#</span><span>Nom</span><span>Prix</span><span>1h</span><span>24h</span><span>7j</span><span>Market Cap</span><span></span>
           </div>
           <div style={{ maxHeight:"calc(100vh - 290px)", overflowY:"auto" }}>
-            {loading && <div style={{ padding:"30px", textAlign:"center", color:"var(--muted)", fontSize:".8rem" }}>Chargement des données réelles…</div>}
-            {!loading && view.length===0 && <div style={{ padding:"30px", textAlign:"center", color:"var(--muted)", fontSize:".8rem" }}>Aucun résultat. (CoinGecko limite parfois les requêtes — réessayez dans 1 min.)</div>}
+            {(loading||searching) && <div style={{ padding:"30px", textAlign:"center", color:"var(--muted)", fontSize:".8rem" }}>{searching?"Recherche…":"Chargement des données réelles…"}</div>}
+            {!loading && !searching && view.length===0 && <div style={{ padding:"30px", textAlign:"center", color:"var(--muted)", fontSize:".8rem" }}>{q.trim().length>=2?`Aucune crypto trouvée pour « ${q} ».`:"Aucun résultat. Réessayez dans 1 min."}</div>}
             {!loading && view.map(c=>(
               <div key={c.id} onClick={()=>setSel(c)} className="token-row" style={{ display:"grid", gridTemplateColumns:"40px 1.6fr 1fr .7fr .7fr .9fr 1fr .8fr", padding:"10px 16px", fontSize:".74rem", alignItems:"center", borderBottom:"1px solid rgba(10,26,92,0.25)", cursor:"pointer" }}>
                 <span style={{ color:"var(--muted)", fontSize:".64rem" }}>{c.rank||"—"}</span>

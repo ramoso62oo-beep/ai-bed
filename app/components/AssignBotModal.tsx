@@ -24,7 +24,7 @@ export default function AssignBotModal({ token, onClose, onAssigned }: { token: 
     const bot = bots.find(b=>b.id===botId);
     try {
       const a = JSON.parse(localStorage.getItem("aibed_assigned")||"{}");
-      a[token.id] = { bot: bot?.name || "Bot", botId, mode };
+      a[token.id] = { bot: bot?.name || "Bot", botId, mode, symbol: token.symbol, name: token.name, image: token.image, price: token.price };
       localStorage.setItem("aibed_assigned", JSON.stringify(a));
     } catch {}
     setDone(`${token.symbol} confié à ${bot?.name} en mode ${mode}`);

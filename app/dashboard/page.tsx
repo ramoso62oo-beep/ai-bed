@@ -9,6 +9,7 @@ import WhaleFeed from "../components/WhaleFeed";
 import NewsFeed from "../components/NewsFeed";
 import Tilt3D from "../components/Tilt3D";
 import { useAccess, VisitorBanner, DemoResetBanner } from "../components/Access";
+import BotNotifier from "../components/BotNotifier";
 
 const AVATARS = ["🐂","🦅","🐉","🦁","🐺","🦊","🤖","👾","🎯","💀","🌙","⚡","🔥","💎","🚀","🌊","🎭","🏆","👑","⚔️"];
 
@@ -127,6 +128,7 @@ export default function DashboardPage() {
   return (
     <div className="dash-root" style={{ display:"grid", gridTemplateColumns:"210px 1fr", height:"100vh", background:"var(--navy)", overflow:"hidden" }}>
 
+      <BotNotifier email={user.email} />
       {/* Fond cliquable mobile */}
       <div className={`dash-backdrop ${navOpen?"open":""}`} onClick={()=>setNavOpen(false)} />
 
@@ -196,7 +198,7 @@ export default function DashboardPage() {
           <span style={{ fontFamily:"var(--font-orbitron,monospace)", fontSize:".75rem", fontWeight:700, color:"white", letterSpacing:".12em" }}>Dashboard</span>
           <div style={{ display:"flex", gap:6, marginLeft:12 }}>
             {(["PATIENT","ACTIF","AGRESSIF"] as const).map(m=>(
-              <Tooltip key={m} text={MODE_TIP[m]}>
+              <Tooltip key={m} text={MODE_TIP[m]} pos="bottom">
                 <button onClick={()=>changeMode(m)} style={{ fontSize:".58rem", fontWeight:700, padding:"4px 11px", borderRadius:20, cursor:"pointer", border:`1px solid ${MODE_COLOR[m]}`, color:mode===m?"white":MODE_COLOR[m], background:mode===m?MODE_COLOR[m]:"transparent", letterSpacing:".08em", transition:"all .2s" }}>{m}</button>
               </Tooltip>
             ))}

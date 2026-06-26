@@ -3,8 +3,11 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { createChart, CandlestickSeries, HistogramSeries, ColorType, type IChartApi, type ISeriesApi, type UTCTimestamp } from "lightweight-charts";
 
 type K = { t:number; o:number; h:number; l:number; c:number; v:number };
+// label, intervalle Binance, période de poll (ms)
 const TF: [string,string,number][] = [
-  ["1s","1s",2000],["1m","1m",4000],["5m","5m",6000],["15m","15m",8000],["1h","1h",12000],["4h","4h",15000],["1j","1d",20000],
+  ["1s","1s",2000],["1m","1m",4000],["5m","5m",6000],["15m","15m",8000],
+  ["1h","1h",12000],["4h","4h",15000],["1j","1d",20000],["3j","3d",30000],
+  ["1Sem","1w",60000],["1Mois","1M",120000],
 ];
 
 export default function ProChart({ pair="BTC" }: { pair?: string }) {
